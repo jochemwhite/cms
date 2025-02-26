@@ -9,35 +9,25 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      tenant_users: {
+      cms_user_roles: {
         Row: {
-          created_at: string
           id: string
-          tenant_id: string
+          role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
-          created_at?: string
           id?: string
-          tenant_id: string
+          role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
-          created_at?: string
           id?: string
-          tenant_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_users_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tenant_users_user_id_fkey"
+            foreignKeyName: "cms_user_roles_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -45,26 +35,120 @@ export type Database = {
           },
         ]
       }
-      tenants: {
+      tenant_role_permissions: {
         Row: {
-          created_at: string
           id: string
-          name: string
-          slug: string | null
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string
         }
         Insert: {
-          created_at?: string
           id?: string
-          name: string
-          slug?: string | null
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string
         }
         Update: {
-          created_at?: string
           id?: string
-          name?: string
-          slug?: string | null
+          permission?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenant_role_permissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenant_user_profiles: {
+        Row: {
+          id: string
+          tenant_id: string | null
+          tenant_role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          id: string
+          tenant_id?: string | null
+          tenant_role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          id?: string
+          tenant_id?: string | null
+          tenant_role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_user_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_user_profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          billing_address_line1: string
+          billing_address_line2: string | null
+          billing_city: string
+          billing_country: string
+          billing_postal_code: string
+          contact_email: string
+          contact_name: string
+          created_at: string
+          created_by: string
+          id: string
+          status: string
+          tenant_name: string
+        }
+        Insert: {
+          billing_address_line1: string
+          billing_address_line2?: string | null
+          billing_city: string
+          billing_country: string
+          billing_postal_code: string
+          contact_email: string
+          contact_name: string
+          created_at?: string
+          created_by: string
+          id?: string
+          status: string
+          tenant_name: string
+        }
+        Update: {
+          billing_address_line1?: string
+          billing_address_line2?: string | null
+          billing_city?: string
+          billing_country?: string
+          billing_postal_code?: string
+          contact_email?: string
+          contact_name?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          status?: string
+          tenant_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenants_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
@@ -74,9 +158,6 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
-          role: string
-          updated_at: string
-          user_id: string
         }
         Insert: {
           avatar?: string | null
@@ -85,9 +166,6 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
-          role?: string
-          updated_at?: string
-          user_id: string
         }
         Update: {
           avatar?: string | null
@@ -96,9 +174,6 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
-          role?: string
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -107,10 +182,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      auth_hook_enrich_jwt: {
+        Args: {
+          user_data: Json
+        }
+        Returns: Json
+      }
+      custom_access_token_hook: {
+        Args: {
+          event: Json
+        }
+        Returns: Json
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "system_admin" | "tenant_owner"
     }
     CompositeTypes: {
       [_ in never]: never

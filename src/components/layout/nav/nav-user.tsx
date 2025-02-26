@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Database } from "@/types/supabase";
+import { logout } from "@/app/(auth)/_actions";
 
 export function NavUser({ user }: { user: Database["public"]["Tables"]["users"]["Row"] }) {
   const { isMobile } = useSidebar();
@@ -76,7 +77,7 @@ export function NavUser({ user }: { user: Database["public"]["Tables"]["users"][
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => logout()}>
               <LogOut />
               Log out
             </DropdownMenuItem>

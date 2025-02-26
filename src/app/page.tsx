@@ -1,12 +1,18 @@
 import SingInForm from "@/components/auth/SingInForm";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SparklesCore } from "@/components/ui/sparkles";
-import { Spotlight } from "@/components/ui/spotlight-new";
+import { createClient } from "@/lib/supabase/supabaseServerClient";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    console.log("submitted");
+export default async function Home() {
+ 
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.auth.getUser()
+
+  // if we have a user, redirect to the dashboard
+  if (data?.user) {
+    redirect("/dashboard")
   }
 
   return (

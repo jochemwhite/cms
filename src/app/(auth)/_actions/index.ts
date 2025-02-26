@@ -30,22 +30,41 @@ export async function login(formData: z.infer<typeof schema>) {
   redirect("/dashboard");
 }
 
+
+
+export async function logout() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();  
+  revalidatePath("/");
+
+  return redirect("/");
+}
+
+
+
 export async function signup(formData: z.infer<typeof schema>) {
   const supabase = await createClient();
 
+  // Validate the form data
   const result = schema.safeParse(formData);
   if (!result.success) {
-    console.log(result.error);
-    redirect("/error");
+    // Use formErrors directly, since it's a string array
+    const { formErrors } = result.error.flatten();
+    return { error: formErrors.join(", ") };
   }
 
+  // Attempt to sign up the user with Supabase
   const { error, data } = await supabase.auth.signUp(result.data);
 
   if (error) {
-    console.log(error);
-    redirect("/error");
+    // Return the error message for display
+    console.error(error);
+    return { error: error.message };
   }
 
-  revalidatePath("/", "layout");
-  redirect("/");
+  // Optionally revalidate your cache if needed
+  revalidatePath("/");
+
+  // Return the successful response
+  return { data };
 }

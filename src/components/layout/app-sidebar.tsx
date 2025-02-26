@@ -1,5 +1,19 @@
-'use client';
-import { AudioWaveform, BookOpen, Bot, Command, Frame, GalleryVerticalEnd, Map, PieChart, Settings2, SquareTerminal } from "lucide-react";
+"use client";
+import {
+  AudioWaveform,
+  BookOpen,
+  Bot,
+  Building2,
+  Cctv,
+  Command,
+  Frame,
+  GalleryVerticalEnd,
+  Map,
+  PieChart,
+  Settings2,
+  SquareTerminal,
+  User,
+} from "lucide-react";
 import * as React from "react";
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar";
@@ -7,6 +21,9 @@ import { NavMain } from "./nav/nav-main";
 import { NavProjects } from "./nav/nav-projects";
 import { NavUser } from "./nav/nav-user";
 import { TeamSwitcher } from "./nav/team-switcher";
+import { NavAdmin } from "./nav/nav-admin";
+import { getCurrentUserRoles } from "@/server/auth/getCurrentUserRoles";
+import { Database } from "@/types/supabase";
 
 // This is sample data.
 const data = {
@@ -119,40 +136,56 @@ const data = {
       ],
     },
   ],
+
   projects: [
     {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
+      name: "Users",
+      url: "/dashboard/projects/users",
+      icon: User,
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
+      name: "Roles",
+      url: "/dashboard/projects/roles",
+      icon: Cctv,
+    },
+
+  ],
+  admin: [
+    {
+      name: "Tenants",
+      url: "/dashboard/tenants",
+      icon: Building2,
     },
     {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      name: "Users",
+      url: "/dashboard/admin/users",
+      icon: User,
     },
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
+interface Props {
+  roles: Database["public"]["Enums"]["app_role"][];
+  user: Database["public"]["Tables"]["users"]["Row"];
+}
+
+export function AppSidebar({ roles, user }: Props) {
+  
 
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" >
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
+        {roles.includes("system_admin") && <NavAdmin projects={data.admin} />}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
