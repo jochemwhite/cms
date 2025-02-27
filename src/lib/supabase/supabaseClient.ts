@@ -1,10 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
+import { Database } from "@/types/supabase";
 import { env } from "../env";
 
-import type { Database } from "@/types/supabase";
+import { createBrowserClient } from "@supabase/ssr";
 
-export function createSupabaseClient() {
-  return createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+export function createClient() {
+  return createBrowserClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 }
 
-export const supabase = createSupabaseClient();

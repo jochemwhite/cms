@@ -17,7 +17,7 @@ export type Database = {
         }
         Insert: {
           id?: string
-          role: Database["public"]["Enums"]["app_role"]
+          role?: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
@@ -111,6 +111,7 @@ export type Database = {
           id: string
           status: string
           tenant_name: string
+          tenant_type: string
         }
         Insert: {
           billing_address_line1: string
@@ -125,6 +126,7 @@ export type Database = {
           id?: string
           status: string
           tenant_name: string
+          tenant_type: string
         }
         Update: {
           billing_address_line1?: string
@@ -139,6 +141,7 @@ export type Database = {
           id?: string
           status?: string
           tenant_name?: string
+          tenant_type?: string
         }
         Relationships: [
           {
@@ -194,12 +197,29 @@ export type Database = {
         }
         Returns: Json
       }
+      get_user_session: {
+        Args: {
+          p_user_id?: string
+        }
+        Returns: {
+          user_info: unknown
+          cms_roles: Database["public"]["CompositeTypes"]["cms_role_type"][]
+          tenant_roles: Database["public"]["CompositeTypes"]["tenant_role_type"][]
+        }[]
+      }
     }
     Enums: {
-      app_role: "system_admin" | "tenant_owner"
+      app_role: "system_admin" | "tenant_owner" | "default_user"
     }
     CompositeTypes: {
-      [_ in never]: never
+      cms_role_type: {
+        id: string | null
+        role: Database["public"]["Enums"]["app_role"] | null
+      }
+      tenant_role_type: {
+        tenant_id: string | null
+        tenant_role: Database["public"]["Enums"]["app_role"] | null
+      }
     }
   }
 }

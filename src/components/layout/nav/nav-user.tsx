@@ -15,9 +15,11 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Database } from "@/types/supabase";
 import { logout } from "@/app/(auth)/_actions";
+import { useUserSession } from "@/providers/session-provider";
 
 export function NavUser({ user }: { user: Database["public"]["Tables"]["users"]["Row"] }) {
   const { isMobile } = useSidebar();
+  const { userSession } = useUserSession();
 
   return (
     <SidebarMenu>
@@ -50,7 +52,9 @@ export function NavUser({ user }: { user: Database["public"]["Tables"]["users"][
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{`${user.first_name} ${user.last_name}`}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate text-xs">
+                    {userSession.cms_roles ? userSession.cms_roles.map((role) => role.role).join(", ") : "No roles"}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>

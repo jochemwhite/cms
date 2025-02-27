@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import { redirect, unauthorized } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/supabaseServerClient'
 import { getCurrentUserRoles } from '@/server/auth/getCurrentUserRoles'
@@ -6,12 +6,11 @@ import { getCurrentUserRoles } from '@/server/auth/getCurrentUserRoles'
 export default async function Dashboard() {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect('/login')
+  const { data, error } = await supabase.rpc('get_user_session')
+  if (error) {
+   return unauthorized()
   }
 
-  const roles = await getCurrentUserRoles()
 
 
 
@@ -21,10 +20,9 @@ export default async function Dashboard() {
 
   return (
     <div>
-      <h1>Dashboard</h1>
-      <p>Welcome, {data.user.email}!</p>
-      <p>Your roles: {roles.join(', ')}</p>
-      {/* Add your dashboard content here */}
+      {
+        JSON.stringify(data, null, 2)
+      }
     </div>
   )
 }

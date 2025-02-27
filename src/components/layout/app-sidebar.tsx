@@ -1,29 +1,13 @@
 "use client";
-import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Building2,
-  Cctv,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
-  User,
-} from "lucide-react";
-import * as React from "react";
+import { AudioWaveform, BookOpen, Bot, Building2, Cctv, Command, GalleryVerticalEnd, Settings, Settings2, SquareTerminal, User } from "lucide-react";
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar";
+import { useUserSession } from "@/providers/session-provider";
+import { NavAdmin } from "./nav/nav-admin";
 import { NavMain } from "./nav/nav-main";
 import { NavProjects } from "./nav/nav-projects";
 import { NavUser } from "./nav/nav-user";
 import { TeamSwitcher } from "./nav/team-switcher";
-import { NavAdmin } from "./nav/nav-admin";
-import { getCurrentUserRoles } from "@/server/auth/getCurrentUserRoles";
-import { Database } from "@/types/supabase";
 
 // This is sample data.
 const data = {
@@ -51,87 +35,64 @@ const data = {
   ],
   navMain: [
     {
-      title: "Playground",
-      url: "#",
+      title: "Blogs",
+      url: "/dashboard/blogs",
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "All Posts",
+          url: "/dashboard/blogs",
         },
         {
-          title: "Starred",
-          url: "#",
+          title: "Drafts",
+          url: "/dashboard/blogs/drafts",
         },
         {
-          title: "Settings",
-          url: "#",
+          title: "Categories",
+          url: "/dashboard/blogs/categories",
+        },
+        {
+          title: "Tags",
+          url: "/dashboard/blogs/tags",
+        },
+        {
+          title: "Reactions",
+          url: "/dashboard/blogs/reactions",
         },
       ],
     },
     {
-      title: "Models",
-      url: "#",
+      title: "Pages",
+      url: "/dashboard/pages",
       icon: Bot,
       items: [
         {
-          title: "Genesis",
-          url: "#",
+          title: "All Pages",
+          url: "/dashboard/pages",
         },
         {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
+          title: "Drafts",
+          url: "/dashboard/pages/drafts",
         },
       ],
     },
     {
-      title: "Documentation",
-      url: "#",
+      title: "Events",
+      url: "/dashboard/events",
       icon: BookOpen,
       items: [
         {
-          title: "Introduction",
-          url: "#",
+          title: "All Events",
+          url: "/dashboard/events",
         },
         {
-          title: "Get Started",
-          url: "#",
+          title: "Drafts",
+          url: "/dashboard/events/drafts",
         },
         {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
+          title: "Categories",
+          url: "/dashboard/events/categories",
         },
       ],
     },
@@ -139,16 +100,20 @@ const data = {
 
   projects: [
     {
-      name: "Users",
-      url: "/dashboard/projects/users",
+      name: "User Management",
+      url: "/dashboard/users",
       icon: User,
+    },
+    {
+      name: "Settings",
+      url: "/dashboard/settings",
+      icon: Settings
     },
     {
       name: "Roles",
       url: "/dashboard/projects/roles",
       icon: Cctv,
     },
-
   ],
   admin: [
     {
@@ -164,28 +129,21 @@ const data = {
   ],
 };
 
-
-interface Props {
-  roles: Database["public"]["Enums"]["app_role"][];
-  user: Database["public"]["Tables"]["users"]["Row"];
-}
-
-export function AppSidebar({ roles, user }: Props) {
-  
-
+export function AppSidebar() {
+  const { userSession } = useUserSession();
 
   return (
-    <Sidebar collapsible="icon" >
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
-        {roles.includes("system_admin") && <NavAdmin projects={data.admin} />}
+        {userSession.cms_roles.some((role) => role.role === "system_admin") && <NavAdmin projects={data.admin} />}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser user={userSession!.user_info} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
