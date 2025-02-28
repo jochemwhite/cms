@@ -2,26 +2,25 @@
 
 import { CardFooter } from "@/components/ui/card";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Loader2, Upload } from "lucide-react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
+import { Navigation, Pagination } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { FileUpload } from "../ui/file-upload";
 import { createClient } from "@/lib/supabase/supabaseClient";
 import { Database } from "@/types/supabase";
-import { ifError } from "assert";
+import { FileUpload } from "../ui/file-upload";
+
 
 // Define the form schema with Zod
 const formSchema = z
@@ -77,7 +76,7 @@ export default function OnboardingForm({ user }: props) {
     // upload file supabase
     if (values.profileImage) {
       const type = values.profileImage?.type.split("/")[0];
-      const { data, error } = await supabase.storage.from("users").upload(`/profile_images/${user.id}-profile_image.${type}`, values.profileImage);
+      const { data, error } = await supabase.storage.from("users").upload(`/profile_images/${user.id}-profile_image.${type}`, values.profileImage)
 
       if (error) {
         console.log(error);
@@ -85,8 +84,6 @@ export default function OnboardingForm({ user }: props) {
       }
     }
 
-
-    
     try {
       // Here you would typically send the data to your API
       console.log("Form submitted:", values);
