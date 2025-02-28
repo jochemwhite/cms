@@ -140,7 +140,7 @@ export function AppSidebar() {
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
-        {userSession.cms_roles.some((role) => role.role === "system_admin") && <NavAdmin projects={data.admin} />}
+        {userSession.cms_roles && userSession.cms_roles.some((role) => role.role === "system_admin") && <NavAdmin projects={data.admin} />}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userSession!.user_info} />

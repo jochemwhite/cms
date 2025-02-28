@@ -16,11 +16,12 @@ export default async function Layout({ children }: { children: React.ReactNode }
 
     unauthorized();
   }
-  const roles = await getCurrentUserRoles();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
   if(!user) {
+    console.log(userError)
+
     redirect("/");
   }
 

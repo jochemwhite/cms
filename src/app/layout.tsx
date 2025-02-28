@@ -4,6 +4,11 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/providers/theme-provider";
 
+// Import Swiper styles
+import "swiper/css"
+import "swiper/css/navigation"
+import "swiper/css/pagination"
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

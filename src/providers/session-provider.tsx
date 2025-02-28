@@ -7,7 +7,7 @@ import React, { createContext, ReactNode, useContext, useEffect, useState } from
 
 interface UserSessionData {
   user_info: Database["public"]["Tables"]["users"]["Row"];
-  cms_roles: Database["public"]["Functions"]["get_user_session"]["Returns"][0]["cms_roles"];
+  cms_roles: Database["public"]["Functions"]["get_user_session"]["Returns"][0]["cms_roles"] | null
   tenant_roles: Database["public"]["Functions"]["get_user_session"]["Returns"][0]["tenant_roles"];
 }
 

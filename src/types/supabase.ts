@@ -207,6 +207,12 @@ export type Database = {
           tenant_roles: Database["public"]["CompositeTypes"]["tenant_role_type"][]
         }[]
       }
+      user_has_global_role: {
+        Args: {
+          target_role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "system_admin" | "tenant_owner" | "default_user"
