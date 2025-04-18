@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import type { Swiper as SwiperType } from "swiper";
 import { Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { z } from "zod";
+import { date, z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,6 @@ import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/supabaseClient";
 import { Database } from "@/types/supabase";
 import { FileUpload } from "../ui/file-upload";
-
 
 // Define the form schema with Zod
 const formSchema = z
@@ -75,13 +74,14 @@ export default function OnboardingForm({ user }: props) {
 
     // upload file supabase
     if (values.profileImage) {
-      const type = values.profileImage?.type.split("/")[0];
-      const { data, error } = await supabase.storage.from("users").upload(`/profile_images/${user.id}-profile_image.${type}`, values.profileImage)
+      const type = values.profileImage?.type.split("/")[1];
+      const { data, error } = await supabase.storage.from("users").upload(`/profile_images/${user.id}-profile_image.${type}`, values.profileImage);
 
       if (error) {
         console.log(error);
         return;
       }
+      console.log(data);
     }
 
     try {

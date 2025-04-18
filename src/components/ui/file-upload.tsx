@@ -89,7 +89,7 @@ export const FileUpload = ({ onChange }: { onChange?: (files: File[]) => void })
                     "shadow-sm"
                   )}
                 >
-                  <img src={URL.createObjectURL(files[0])} alt="" className="w-full h-full " />
+                  <img src={URL.createObjectURL(files[0])} alt="" className="w-full h-full object-cover" />
                 </motion.div>
               ))}
             {!files.length && (
