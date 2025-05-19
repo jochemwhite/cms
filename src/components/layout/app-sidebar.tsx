@@ -9,7 +9,7 @@ import { NavProjects } from "./nav/nav-projects";
 import { NavUser } from "./nav/nav-user";
 import { TeamSwitcher } from "./nav/team-switcher";
 
-// This is sample data.
+
 const data = {
   user: {
     name: "shadcn",
@@ -140,7 +140,7 @@ export function AppSidebar() {
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
-        {userSession.cms_roles && userSession.cms_roles.some((role) => role.role === "system_admin") && <NavAdmin projects={data.admin} />}
+        {userSession?.global_roles && userSession.global_roles.some((role) => role.role === "system_admin") && <NavAdmin projects={data.admin} />}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userSession!.user_info} />

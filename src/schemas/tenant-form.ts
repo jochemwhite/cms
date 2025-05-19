@@ -2,6 +2,7 @@ import { z } from "zod";
 
 
 export const TenantSchema = z.object({
+
   tenant_name: z.string().min(2, { message: "Tenant name must be at least 2 characters." }),
   tenant_type: z.enum(["business", "individual", "non-profit"], {
     required_error: "Please select a tenant type.",
@@ -16,6 +17,8 @@ export const TenantSchema = z.object({
   status: z.enum(["active", "inactive", "pending"], {
     required_error: "Please select a status.",
   }),
+
+
 })
 
 export type TenantFormValues = z.infer<typeof TenantSchema>;

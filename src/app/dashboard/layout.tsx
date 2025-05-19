@@ -5,30 +5,33 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { createClient } from "@/lib/supabase/supabaseServerClient";
 import { UserSessionProvider } from "@/providers/session-provider";
 import { getCurrentUserRoles } from "@/server/auth/getCurrentUserRoles";
+import { UserSession } from "@/types/custom-supabase-types";
+import { PostgrestError } from "@supabase/supabase-js";
 import { redirect, unauthorized } from "next/navigation";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("get_user_session").single();
+  const { data, error } = (await supabase.rpc("get_user_session").single()) as { data: UserSession; error: PostgrestError | null };
   if (error || !data) {
-    if(error) console.log(error);
-
-
+    if (error) console.log(error);
     unauthorized();
   }
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  if(!user) {
-    console.log(userError)
+  if (!user) {
+    console.log(userError);
 
     redirect("/");
   }
 
   return (
-    <UserSessionProvider userData={data} >
+    <UserSessionProvider userData={data}>
       <SidebarProvider>
-        <AppSidebar  />
+        <AppSidebar />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">
