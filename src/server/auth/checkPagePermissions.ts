@@ -30,7 +30,6 @@ export async function checkPagePermissions(options: CheckPermissionsOptions): Pr
     const payload = JSON.parse(atob(payloadBase64));
     const cmsRoles: string[] = payload?.cms_roles || []; // Default to empty array if no cms_roles claim
 
-    console.log(payload)
 
     if (options.requiredRole === "system_admin") {
       return cmsRoles.includes("system_admin");

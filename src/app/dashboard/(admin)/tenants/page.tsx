@@ -14,10 +14,12 @@ export default async function page() {
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase.from("tenants").select("*");
+  const { data, error } = await supabase.from("tenants").select("*, users(email)");
+
+  console.log(data);
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-10 ">
       <div className="flex justify-between items-center mb-10">
         <h1 className="text-3xl font-bold">Tenants</h1>
 

@@ -82,6 +82,7 @@ export type Database = {
           logo_url: string | null
           name: string
           plan: string | null
+          primary_contact: string | null
           settings: Json | null
           slug: string
           status: string | null
@@ -100,6 +101,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           plan?: string | null
+          primary_contact?: string | null
           settings?: Json | null
           slug: string
           status?: string | null
@@ -118,6 +120,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           plan?: string | null
+          primary_contact?: string | null
           settings?: Json | null
           slug?: string
           status?: string | null
@@ -126,7 +129,15 @@ export type Database = {
           trial_ends_at?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenants_primary_contact_fkey"
+            columns: ["primary_contact"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
