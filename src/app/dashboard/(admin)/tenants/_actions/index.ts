@@ -9,7 +9,6 @@ export async function createTenant(values: TenantFormValues) {
   // validate the form values
 
   const validatedValues = TenantSchema.parse(values);
-
   // get the user id
 
   const supabase = await createClient();
@@ -21,7 +20,7 @@ export async function createTenant(values: TenantFormValues) {
 
   const newTenant: Database["public"]["Tables"]["tenants"]["Insert"] = {
     ...validatedValues,
-    created_by: data.id,
+
   };
 
 
