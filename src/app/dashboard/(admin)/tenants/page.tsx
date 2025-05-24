@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/supabaseServerClient";
 import { checkPagePermissions } from "@/server/auth/checkPagePermissions";
 import Link from "next/link";
-import React from "react";
+
+
 
 export default async function page() {
   await checkPagePermissions({
@@ -13,21 +14,21 @@ export default async function page() {
   });
 
   const supabase = await createClient();
-
   const { data, error } = await supabase.from("tenants").select("*, users(email)");
 
-  console.log(data);
+  if (error) {
+    console.error(error);
+  }
+
 
   return (
     <div className="container mx-auto py-10 ">
       <div className="flex justify-between items-center mb-10">
         <h1 className="text-3xl font-bold">Tenants</h1>
-
         <Link href="/dashboard/tenants/create">
           <Button>Create Tenant</Button>
         </Link>
       </div>
-
       <DataTable columns={columns} data={data ?? []} />
     </div>
   );

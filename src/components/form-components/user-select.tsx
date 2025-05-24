@@ -2,13 +2,7 @@ import React from "react";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl } from "@/components/ui/form";
 import { createClient } from "@/lib/supabase/supabaseClient";
-import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandItem,
-  CommandEmpty,
-} from "@/components/ui/command";
+import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command";
 
 export interface UserSelectProps {
   value: string | undefined;
@@ -27,10 +21,7 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
     setLoading(true);
     try {
       const supabase = createClient();
-      const { data, error } = await supabase
-        .from("users")
-        .select("id, first_name, last_name, email")
-        .order("first_name", { ascending: true });
+      const { data, error } = await supabase.from("users").select("id, first_name, last_name, email").order("first_name", { ascending: true });
       if (error) throw error;
       setUsers(data || []);
       setFetched(true);
@@ -44,22 +35,13 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
   const filteredUsers =
     search.trim().length === 0
       ? users
-      : users.filter((user) =>
-          `${user.first_name} ${user.last_name} ${user.email}`
-            .toLowerCase()
-            .includes(search.toLowerCase())
-        );
+      : users.filter((user) => `${user.first_name} ${user.last_name} ${user.email}`.toLowerCase().includes(search.toLowerCase()));
+
+  const selectedUser = users.find((u) => u.id === value);
 
   return (
     <Select
       value={value}
-      onValueChange={(val) => {
-        if (val === "__create_new__") {
-          onCreateNew();
-        } else {
-          onChange(val);
-        }
-      }}
       onOpenChange={async (open) => {
         if (open && !fetched) {
           await fetchUsers();
@@ -68,17 +50,16 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
     >
       <FormControl>
         <SelectTrigger>
-          <SelectValue placeholder={placeholder || "Select a user"} />
+          <SelectValue placeholder={placeholder || "Select a user"}>
+            {selectedUser
+              ? `${selectedUser.first_name} ${selectedUser.last_name} (${selectedUser.email})`
+              : null}
+          </SelectValue>
         </SelectTrigger>
       </FormControl>
       <SelectContent>
         <Command shouldFilter={false} className="p-0">
-          <CommandInput
-            placeholder="Search users..."
-            value={search}
-            onValueChange={setSearch}
-            autoFocus
-          />
+          <CommandInput placeholder="Search users..." value={search} onValueChange={setSearch} autoFocus />
           <CommandList>
             {loading ? (
               <div className="p-2 text-sm text-muted-foreground">Loading...</div>
@@ -89,16 +70,14 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
                   <CommandItem
                     key={user.id}
                     value={user.id}
-                    onSelect={() => onChange(user.id)}
+                    onSelect={() => {
+                      onChange(user.id);
+                    }}
                   >
                     {user.first_name} {user.last_name} ({user.email})
                   </CommandItem>
                 ))}
-                <CommandItem
-                  value="__create_new__"
-                  onSelect={() => onCreateNew()}
-                  className="text-primary font-semibold border-t mt-2 pt-2"
-                >
+                <CommandItem value="__create_new__" className="text-primary font-semibold border-t mt-2 pt-2">
                   + Create new user…
                 </CommandItem>
               </>
@@ -108,4 +87,4 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
       </SelectContent>
     </Select>
   );
-}; 
+};

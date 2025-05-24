@@ -1,30 +1,27 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Building2, Check, Globe, Mail, Upload, X } from "lucide-react"
-import React, { useState } from "react"
-import { useForm } from "react-hook-form"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { UserSchema, type UserFormValues } from "@/schemas/user-form"
-import { useForm as useUserForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Building2, Check, Globe, Mail, Upload, X } from "lucide-react";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 
-import { PLAN_OPTIONS, STATUS_OPTIONS } from "@/lib/utils"
+import { LANGUAGE_OPTIONS, PLAN_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { type TenantFormValues, TenantSchema } from "@/schemas/tenant-form"
-import { UserSelect } from "../../form-components/user-select"
-import UserCreationForm from "../../form-components/UserCreationForm"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TenantSchema, type TenantFormValues } from "@/schemas/tenant-form";
+import { UserSelect } from "../../form-components/user-select";
+import { CountrySelect } from "@/components/form-components/country-select";
 
 export const TenantForm: React.FC = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formSuccess, setFormSuccess] = useState<string | null>(null)
-  const [logoPreview, setLogoPreview] = useState<string | null>(null)
-  const [userDialogOpen, setUserDialogOpen] = React.useState(false)
-  const [selectedContact, setSelectedContact] = React.useState<string>("")
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [userDialogOpen, setUserDialogOpen] = React.useState(false);
+  const [selectedCountry, setSelectedCountry] = useState(null);
 
   const form = useForm<TenantFormValues>({
     resolver: zodResolver(TenantSchema),
@@ -46,50 +43,54 @@ export const TenantForm: React.FC = () => {
       primary_contact: "",
       phone: "",
     },
-  })
+  });
 
   // Auto-generate slug from name
   React.useEffect(() => {
-    const name = form.watch("name")
+    const name = form.watch("name");
     if (name && !form.getValues("slug")) {
       const slug = name
         .toLowerCase()
         .replace(/[^a-z0-9]/g, "-")
         .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "")
-      form.setValue("slug", slug)
+        .replace(/^-|-$/g, "");
+      form.setValue("slug", slug);
     }
-  }, [form.watch("name")])
+  }, [form.watch("name")]);
+
+  React.useEffect(() => {
+    console.log(form.watch());
+  }, [form.watch()]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
       // In a real app, you would upload the file to a server and get a URL back
       // For this demo, we'll create a local object URL
-      const objectUrl = URL.createObjectURL(file)
-      setLogoPreview(objectUrl)
-      form.setValue("logo_url", `uploaded-${file.name}`) // In real app, this would be the URL from the server
+      const objectUrl = URL.createObjectURL(file);
+      setLogoPreview(objectUrl);
+      form.setValue("logo_url", `uploaded-${file.name}`); // In real app, this would be the URL from the server
     }
-  }
+  };
 
   const removeLogo = () => {
-    setLogoPreview(null)
-    form.setValue("logo_url", "")
-  }
+    setLogoPreview(null);
+    form.setValue("logo_url", "");
+  };
 
   const onSubmit = async (data: TenantFormValues) => {
     try {
-      setIsSubmitting(true)
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Form submitted:", data)
-      setFormSuccess("Tenant created successfully!")
-      setTimeout(() => setFormSuccess(null), 3000)
+      setIsSubmitting(true);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("Form submitted:", data);
+      setFormSuccess("Tenant created successfully!");
+      setTimeout(() => setFormSuccess(null), 3000);
     } catch (error) {
-      console.error("Error submitting form:", error)
+      console.error("Error submitting form:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Card>
@@ -137,8 +138,8 @@ export const TenantForm: React.FC = () => {
                               className="pl-10"
                               {...field}
                               onChange={(e) => {
-                                const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")
-                                field.onChange(value)
+                                const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+                                field.onChange(value);
                               }}
                             />
                             {field.value && (
@@ -262,13 +263,13 @@ export const TenantForm: React.FC = () => {
                         <UserSelect
                           value={field.value}
                           onChange={(val) => {
-                            field.onChange(val)
-                            setSelectedContact(val)
+                            console.log(val);
+                            field.onChange(val);
                           }}
                           onCreateNew={() => setUserDialogOpen(true)}
                         />
                         <FormMessage />
-                        <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
+                        {/* <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
                           <DialogContent>
                             <DialogHeader>
                               <DialogTitle>Create New User</DialogTitle>
@@ -276,13 +277,13 @@ export const TenantForm: React.FC = () => {
                             </DialogHeader>
                             <UserCreationForm
                               onSuccess={(newUser) => {
-                                form.setValue("primary_contact", newUser.id)
-                                setSelectedContact(newUser.id)
-                                setUserDialogOpen(false)
+                                form.setValue("primary_contact", newUser.id);
+                                setSelectedContact(newUser.id);
+                                setUserDialogOpen(false);
                               }}
                             />
                           </DialogContent>
-                        </Dialog>
+                        </Dialog> */}
                       </FormItem>
                     )}
                   />
@@ -300,12 +301,11 @@ export const TenantForm: React.FC = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="en-US">English (US)</SelectItem>
-                            <SelectItem value="en-GB">English (UK)</SelectItem>
-                            <SelectItem value="es-ES">Spanish</SelectItem>
-                            <SelectItem value="fr-FR">French</SelectItem>
-                            <SelectItem value="de-DE">German</SelectItem>
-                            <SelectItem value="ja-JP">Japanese</SelectItem>
+                            {LANGUAGE_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -398,22 +398,12 @@ export const TenantForm: React.FC = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Country</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select country" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="US">United States</SelectItem>
-                              <SelectItem value="CA">Canada</SelectItem>
-                              <SelectItem value="GB">United Kingdom</SelectItem>
-                              <SelectItem value="AU">Australia</SelectItem>
-                              <SelectItem value="DE">Germany</SelectItem>
-                              <SelectItem value="FR">France</SelectItem>
-                              <SelectItem value="JP">Japan</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <CountrySelect
+                            onChange={(value) => {
+                              field.onChange(value);
+                            }}
+                            value={field.value || ""}
+                          />
                           <FormMessage />
                         </FormItem>
                       )}
@@ -468,11 +458,7 @@ export const TenantForm: React.FC = () => {
                           >
                             {logoPreview ? (
                               <div className="relative w-full h-full flex items-center justify-center p-6">
-                                <img
-                                  src={logoPreview || "/placeholder.svg"}
-                                  alt="Logo preview"
-                                  className="max-h-full max-w-full object-contain"
-                                />
+                                <img src={logoPreview || "/placeholder.svg"} alt="Logo preview" className="max-h-full max-w-full object-contain" />
                                 <button
                                   type="button"
                                   onClick={removeLogo}
@@ -491,13 +477,7 @@ export const TenantForm: React.FC = () => {
                                 <p className="text-xs text-gray-500">SVG, PNG, or JPG (max. 2MB)</p>
                               </div>
                             )}
-                            <input
-                              id="logo-upload"
-                              type="file"
-                              className="hidden"
-                              accept="image/*"
-                              onChange={handleLogoUpload}
-                            />
+                            <input id="logo-upload" type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
                           </label>
                         </div>
                       </FormControl>
@@ -523,20 +503,8 @@ export const TenantForm: React.FC = () => {
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <div className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path
                           className="opacity-75"
                           fill="currentColor"
@@ -555,7 +523,7 @@ export const TenantForm: React.FC = () => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
 export default TenantForm;

@@ -5,12 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const LOCALE_OPTIONS = [
+export const LANGUAGE_OPTIONS = [
   { value: "nl-NL", label: "Dutch" },
   { value: "en-US", label: "English (US)" },
   { value: "es-ES", label: "Spanish" },
   { value: "fr-FR", label: "French" },
+  { value: "pt-PT", label: "Portuguese" },
 ];
+
+
 
 export const TIMEZONE_OPTIONS = [
   {

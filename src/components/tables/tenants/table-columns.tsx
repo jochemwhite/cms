@@ -10,13 +10,11 @@ import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-type Column = Database["public"]["Tables"]["tenants"]["Row"] & {
-  users: {
-    email: string;
-  }
+type TenantWithUserEmail = Database["public"]["Tables"]["tenants"]["Row"] & {
+  users: Pick<Database["public"]["Tables"]["users"]["Row"], "email"> | null;
 };
 
-export const columns: ColumnDef<Column>[] = [
+export const columns: ColumnDef<TenantWithUserEmail>[] = [
   {
     id: "select",
     header: ({ table }) => (
