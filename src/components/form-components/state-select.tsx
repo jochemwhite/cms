@@ -1,66 +1,48 @@
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Country } from "@/types/api/restcountries";
-import React, { useState } from "react";
+import { State } from "@/types/api/countriesnow";
+import React from "react";
 
-export const CountrySelect = ({ onChange, value }: { onChange: (value: string) => void; value: string }) => {
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [fetched, setFetched] = React.useState(false);
+interface StateSelectProps {
+  onChange: (value: string) => void;
+  value: string;
+  states: State[];
+  loading?: boolean;
+}
+
+export const StateSelect = ({ onChange, value, states, loading }: StateSelectProps) => {
   const [search, setSearch] = React.useState("");
+  const [open, setOpen] = React.useState(false);
 
-  const fetchCountries = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("https://restcountries.com/v3.1/all");
-      const data: Country[] = await response.json();
-      setCountries((data || []).sort((a, b) => a.name.common.localeCompare(b.name.common)));
-    } catch (error) {
-      console.error("Error fetching countries:", error);
-      setCountries([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredCountries = countries.filter((country) => country.name.common.toLowerCase().includes(search.toLowerCase()));
-  const selectedCountry = countries.find((country) => country.cca2 === value);
+  const filteredStates = states.filter((state) => state.name.toLowerCase().includes(search.toLowerCase()));
+  const selectedState = states.find((state) => state.state_code === value);
 
   return (
-    <Select
-      value={value}
-      onOpenChange={async (open) => {
-        if (open && !fetched) {
-          await fetchCountries();
-        }
-      }}
-    >
+    <Select value={value} open={open} onOpenChange={setOpen}>
       <SelectTrigger>
-        <SelectValue placeholder="Select a country">{selectedCountry ? selectedCountry.name.common : "Select a country"}</SelectValue>
+        <SelectValue placeholder="Select a state">{selectedState?.name || "Select a state"}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         <Command shouldFilter={false} className="p-0">
-          <CommandInput placeholder="Search users..." value={search} onValueChange={setSearch} autoFocus />
+          <CommandInput placeholder="Search states..." value={search} onValueChange={setSearch} autoFocus />
           <CommandList>
             {loading ? (
               <div className="p-2 text-sm text-muted-foreground">Loading...</div>
             ) : (
               <>
-                <CommandEmpty>No countries found.</CommandEmpty>
-                {filteredCountries.map((country) => (
+                <CommandEmpty>No states found.</CommandEmpty>
+                {filteredStates.map((state) => (
                   <CommandItem
-                    key={country.cca2}
-                    value={country.cca2}
+                    key={state.state_code}
+                    value={state.state_code}
                     onSelect={() => {
-                      onChange(country.cca2);
+                      onChange(state.state_code);
+                      setOpen(false);
                     }}
                   >
-                    {country.name.common}
+                    {state.name}
                   </CommandItem>
                 ))}
-                <CommandItem value="__create_new__" className="text-primary font-semibold border-t mt-2 pt-2">
-                  + Create new country…
-                </CommandItem>
               </>
             )}
           </CommandList>

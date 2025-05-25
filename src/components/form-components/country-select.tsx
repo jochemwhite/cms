@@ -1,68 +1,44 @@
-import React, { useEffect, useState } from "react";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Country } from "@/types/api/restcountries";
+import { CountryPosition } from "@/types/api/countriesnow";
+import React from "react";
 
-export const CountrySelect = ({ onChange, value }: { onChange: (value: string) => void, value: string }) => {
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [fetched, setFetched] = React.useState(false);
+interface CountrySelectProps {
+  onChange: (value: string) => void;
+  value: string;
+  countries: CountryPosition[];
+}
+
+export const CountrySelect = ({ onChange, value, countries }: CountrySelectProps) => {
   const [search, setSearch] = React.useState("");
-
-  const fetchCountries = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("https://restcountries.com/v3.1/all");
-      const data: Country[] = await response.json();
-      setCountries((data || []).sort((a, b) => a.name.common.localeCompare(b.name.common)));
-    } catch (error) {
-      console.error("Error fetching countries:", error);
-      setCountries([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredCountries = countries.filter((country) => country.name.common.toLowerCase().includes(search.toLowerCase()));
-  const selectedCountry = countries.find((country) => country.cca2 === value);
+  const [open, setOpen] = React.useState(false);
+  const filteredCountries = countries.filter((country) => country.name.toLowerCase().includes(search.toLowerCase()));
+  const selectedCountry = countries.find((country) => country.iso2 === value);
 
   return (
-    <Select value={value} onOpenChange={async (open) => {
-      if (open && !fetched) {
-        await fetchCountries();
-      }
-    }}>
+    <Select value={value} open={open} onOpenChange={setOpen}>
       <SelectTrigger>
-        <SelectValue placeholder="Select a country">
-          {selectedCountry ? selectedCountry.name.common : "Select a country"}
-        </SelectValue>
+        <SelectValue placeholder="Select a country">{selectedCountry ? selectedCountry.name : "Select a country"}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         <Command shouldFilter={false} className="p-0">
           <CommandInput placeholder="Search users..." value={search} onValueChange={setSearch} autoFocus />
           <CommandList>
-            {loading ? (
-              <div className="p-2 text-sm text-muted-foreground">Loading...</div>
-            ) : (
-              <>
-                <CommandEmpty>No countries found.</CommandEmpty>
-                {filteredCountries.map((country) => (
-                  <CommandItem
-                    key={country.cca2}
-                    value={country.cca2}
-                    onSelect={() => {
-                      console.log(country);
-                      onChange(country.cca2);
-                    }}
-                  >
-                    {country.name.common}
-                  </CommandItem>
-                ))}
-                <CommandItem value="__create_new__" className="text-primary font-semibold border-t mt-2 pt-2">
-                  + Create new country…
+            <>
+              <CommandEmpty>No countries found.</CommandEmpty>
+              {filteredCountries.map((country) => (
+                <CommandItem
+                  key={country.iso2}
+                  value={country.iso2}
+                  onSelect={() => {
+                    onChange(country.iso2);
+                    setOpen(false);
+                  }}
+                >
+                  {country.name}
                 </CommandItem>
-              </>
-            )}
+              ))}
+            </>
           </CommandList>
         </Command>
       </SelectContent>

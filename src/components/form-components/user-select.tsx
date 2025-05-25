@@ -3,6 +3,8 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/
 import { FormControl } from "@/components/ui/form";
 import { createClient } from "@/lib/supabase/supabaseClient";
 import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
+import { UserCreationForm } from "../admin/forms/UserCreationForm";
 
 export interface UserSelectProps {
   value: string | undefined;
@@ -16,7 +18,8 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
   const [loading, setLoading] = React.useState(false);
   const [fetched, setFetched] = React.useState(false);
   const [search, setSearch] = React.useState("");
-
+  const [open, setOpen] = React.useState(false);
+  const [sheetOpen, setSheetOpen] = React.useState(false);
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -40,14 +43,17 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
   const selectedUser = users.find((u) => u.id === value);
 
   return (
+    <>
     <Select
       value={value}
+      open={open}
       onOpenChange={async (open) => {
         if (open && !fetched) {
           await fetchUsers();
         }
+        setOpen(open);
       }}
-    >
+      >
       <FormControl>
         <SelectTrigger>
           <SelectValue placeholder={placeholder || "Select a user"}>
@@ -68,16 +74,20 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
                 <CommandEmpty>No users found.</CommandEmpty>
                 {filteredUsers.map((user) => (
                   <CommandItem
-                    key={user.id}
-                    value={user.id}
-                    onSelect={() => {
-                      onChange(user.id);
-                    }}
+                  key={user.id}
+                  value={user.id}
+                  onSelect={() => {
+                    onChange(user.id);
+                    setOpen(false);
+                    setSheetOpen(false);
+                  }}
                   >
                     {user.first_name} {user.last_name} ({user.email})
                   </CommandItem>
                 ))}
-                <CommandItem value="__create_new__" className="text-primary font-semibold border-t mt-2 pt-2">
+                <CommandItem value="__create_new__" className="text-primary font-semibold border-t mt-2 pt-2" onSelect={() => {
+                  setSheetOpen(true);
+                }}>
                   + Create new user…
                 </CommandItem>
               </>
@@ -86,5 +96,18 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
         </Command>
       </SelectContent>
     </Select>
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Create new user</SheetTitle>
+          </SheetHeader>
+
+          <UserCreationForm onSuccess={() => {
+            setSheetOpen(false);
+          }} />
+
+        </SheetContent>
+      </Sheet>
+    </>
   );
 };

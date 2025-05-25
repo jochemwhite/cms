@@ -7,6 +7,8 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+
 
 export interface UserCreationFormProps {
   onSuccess: (user: any) => void;
@@ -19,6 +21,7 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess })
       first_name: "",
       last_name: "",
       email: "",
+      send_invite: true,
       global_role: "default_user",
     },
   });
@@ -105,6 +108,22 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess })
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="send_invite"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between">
+              <FormLabel>Send Invite</FormLabel>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+                </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         {error && <div className="text-red-500 text-sm">{error}</div>}
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "Creating..." : "Create User"}
@@ -114,4 +133,4 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess })
   );
 };
 
-export default UserCreationForm; 
+export default UserCreationForm;

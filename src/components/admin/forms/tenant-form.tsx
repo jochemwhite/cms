@@ -15,14 +15,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TenantSchema, type TenantFormValues } from "@/schemas/tenant-form";
 import { UserSelect } from "../../form-components/user-select";
 import { CountrySelect } from "@/components/form-components/country-select";
+import { useCountriesAndStates } from "@/hooks/use-countries-states";
+import { StateSelect } from "@/components/form-components/state-select";
 
 export const TenantForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [userDialogOpen, setUserDialogOpen] = React.useState(false);
-  const [selectedCountry, setSelectedCountry] = useState(null);
-
+  const { countries, states, loadingCountries, loadingStates, fetchStates } = useCountriesAndStates();
+ 
+ 
   const form = useForm<TenantFormValues>({
     resolver: zodResolver(TenantSchema),
     defaultValues: {
@@ -61,6 +64,15 @@ export const TenantForm: React.FC = () => {
   React.useEffect(() => {
     console.log(form.watch());
   }, [form.watch()]);
+
+  // Fetch states when country changes
+  React.useEffect(() => {
+    const country = form.watch("country");
+    if (typeof country === "string" && country.length > 0) {
+      fetchStates(country);
+    }
+  }, [form.watch("country")]);
+
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -371,7 +383,13 @@ export const TenantForm: React.FC = () => {
                         <FormItem>
                           <FormLabel>State/Province</FormLabel>
                           <FormControl>
-                            <Input placeholder="CA" {...field} />
+                              <StateSelect
+                                onChange={(value) => {
+                                  field.onChange(value);
+                                }}
+                                states={states}
+                                value={field.value || ""}
+                              />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -402,6 +420,7 @@ export const TenantForm: React.FC = () => {
                             onChange={(value) => {
                               field.onChange(value);
                             }}
+                            countries={countries}
                             value={field.value || ""}
                           />
                           <FormMessage />
