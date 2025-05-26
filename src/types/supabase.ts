@@ -35,6 +35,42 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          error_message: string | null
+          html_body: string | null
+          id: number
+          message_id: string | null
+          sent_at: string
+          status: string
+          subject: string
+          text_body: string | null
+          to_address: string
+        }
+        Insert: {
+          error_message?: string | null
+          html_body?: string | null
+          id?: number
+          message_id?: string | null
+          sent_at?: string
+          status: string
+          subject: string
+          text_body?: string | null
+          to_address: string
+        }
+        Update: {
+          error_message?: string | null
+          html_body?: string | null
+          id?: number
+          message_id?: string | null
+          sent_at?: string
+          status?: string
+          subject?: string
+          text_body?: string | null
+          to_address?: string
+        }
+        Relationships: []
+      }
       tenant_users: {
         Row: {
           created_at: string | null
