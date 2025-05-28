@@ -9,32 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      cms_user_roles: {
-        Row: {
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cms_user_roles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       email_logs: {
         Row: {
           error_message: string | null
@@ -71,104 +45,57 @@ export type Database = {
         }
         Relationships: []
       }
-      tenant_users: {
+      global_role_types: {
+        Row: {
+          description: string
+          id: string
+          role_name: string
+        }
+        Insert: {
+          description: string
+          id?: string
+          role_name: string
+        }
+        Update: {
+          description?: string
+          id?: string
+          role_name?: string
+        }
+        Relationships: []
+      }
+      user_global_roles: {
         Row: {
           created_at: string | null
-          role: string | null
-          tenant_id: string
+          description: string | null
+          global_role_type_id: string
+          id: string
           user_id: string
         }
         Insert: {
           created_at?: string | null
-          role?: string | null
-          tenant_id: string
+          description?: string | null
+          global_role_type_id: string
+          id?: string
           user_id: string
         }
         Update: {
           created_at?: string | null
-          role?: string | null
-          tenant_id?: string
+          description?: string | null
+          global_role_type_id?: string
+          id?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_users_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: true
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tenant_users_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "user_global_roles_global_role_type_id_fkey"
+            columns: ["global_role_type_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "global_role_types"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      tenants: {
-        Row: {
-          billing_email: string | null
-          created_at: string | null
-          custom_domain: string | null
-          id: string
-          is_demo: boolean | null
-          locale: string | null
-          logo_url: string | null
-          name: string
-          plan: string | null
-          primary_contact: string | null
-          settings: Json | null
-          slug: string
-          status: string | null
-          stripe_customer_id: string | null
-          timezone: string | null
-          trial_ends_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          billing_email?: string | null
-          created_at?: string | null
-          custom_domain?: string | null
-          id?: string
-          is_demo?: boolean | null
-          locale?: string | null
-          logo_url?: string | null
-          name: string
-          plan?: string | null
-          primary_contact?: string | null
-          settings?: Json | null
-          slug: string
-          status?: string | null
-          stripe_customer_id?: string | null
-          timezone?: string | null
-          trial_ends_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          billing_email?: string | null
-          created_at?: string | null
-          custom_domain?: string | null
-          id?: string
-          is_demo?: boolean | null
-          locale?: string | null
-          logo_url?: string | null
-          name?: string
-          plan?: string | null
-          primary_contact?: string | null
-          settings?: Json | null
-          slug?: string
-          status?: string | null
-          stripe_customer_id?: string | null
-          timezone?: string | null
-          trial_ends_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
           {
-            foreignKeyName: "tenants_primary_contact_fkey"
-            columns: ["primary_contact"]
+            foreignKeyName: "user_global_roles_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -207,31 +134,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_all_user_tenants: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
+      create_user_profile_and_assign_role: {
+        Args: {
+          p_user_id: string
+          p_email: string
+          p_first_name: string
+          p_last_name: string
+          p_role_type_id: string
+        }
+        Returns: boolean
       }
       get_user_session: {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
-      user_can_access_tenant: {
-        Args: { tenant_id: string }
+      has_global_role: {
+        Args: { role_name_input: string }
         Returns: boolean
+      }
+      revoke_global_role: {
+        Args: { user_id_input: string; role_name_input: string }
+        Returns: undefined
+      }
+      set_system_admin: {
+        Args: { user_id_input: string }
+        Returns: undefined
       }
     }
     Enums: {
-      app_role: "system_admin" | "tenant_owner" | "default_user"
-      post_status: "draft" | "published" | "archived"
+      global_roles: "default_user" | "system_admin"
     }
     CompositeTypes: {
       cms_role_type: {
         id: string | null
-        role: Database["public"]["Enums"]["app_role"] | null
+        role: string | null
       }
       tenant_role_type: {
         tenant_id: string | null
-        tenant_role: Database["public"]["Enums"]["app_role"] | null
+        tenant_role: string | null
       }
     }
   }
@@ -345,8 +285,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["system_admin", "tenant_owner", "default_user"],
-      post_status: ["draft", "published", "archived"],
+      global_roles: ["default_user", "system_admin"],
     },
   },
 } as const

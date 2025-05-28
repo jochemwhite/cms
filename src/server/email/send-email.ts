@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendMail(to: string, subject: string, text: string, html: string) {
+export async function sendEmail(to: string, subject: string, text: string, html: string) {
   const mailOptions = {
     from: `Amrio CMS <${env.SMTP_FROM}>`,
     to: to,

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-
+import { createUserInvite } from "@/actions/authentication/invites";
 
 export interface UserCreationFormProps {
   onSuccess: (user: any) => void;
@@ -32,12 +32,12 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess })
     setIsSubmitting(true);
     setError(null);
     try {
-      // Replace with real API call to Supabase
-      const newUser = {
-        id: Math.random().toString(36).slice(2), // Replace with real ID from Supabase
-        ...data,
-      };
-      onSuccess(newUser);
+      const response = await createUserInvite(data);
+      if (response.success) {
+        onSuccess(response.data);
+      } else {
+        setError(response.error ?? "Unknown error occurred");
+      }
     } catch (e) {
       setError("Failed to create user.");
     } finally {
@@ -115,11 +115,8 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess })
             <FormItem className="flex flex-row items-center justify-between">
               <FormLabel>Send Invite</FormLabel>
               <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-                </FormControl>
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

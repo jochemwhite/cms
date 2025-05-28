@@ -1,17 +1,34 @@
 'use server';
 
 import { supabaseAdmin } from "@/lib/supabase/SupabaseAdminClient";
-import { Database } from "@/types/supabase";
 
-export async function checkRequiredRoles(userId: string, requiredRoles: Database["public"]["Enums"]["app_role"][]): Promise<boolean> {
-  const { data: user, error: userError } = await supabaseAdmin.from('cms_user_roles').select('role').eq('user_id', userId)
+// Define a type for the data structure returned by the Supabase query
+interface UserRoleQueryResult {
+  global_role_types: {
+    role_name: string;
+  } | null;
+}
 
-  if (userError || !user) {
+export async function checkRequiredRoles(userId: string, requiredRoles: string[]): Promise<boolean> {
+  const { data, error } = await supabaseAdmin
+    .from('user_global_roles')
+    .select('global_role_types(role_name)')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error("Error fetching user roles for ID:", userId, error);
     return false;
   }
 
-  const userRoles = user.map((user) => user.role);
+  if (!data || data.length === 0) {
+    return false; // User has no roles at all
+  }
 
-  return requiredRoles.every((role) => userRoles.includes(role));
+  const userRoles: string[] = data
+    .map((item: UserRoleQueryResult) => item.global_role_types?.role_name)
+    .filter((roleName): roleName is string => typeof roleName === 'string');
 
+  // --- MODIFIED LINE HERE ---
+  // Check if the user possesses AT LEAST ONE of the required roles
+  return requiredRoles.some((requiredRole) => userRoles.includes(requiredRole));
 }

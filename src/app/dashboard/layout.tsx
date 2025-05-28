@@ -4,7 +4,6 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/lib/supabase/supabaseServerClient";
 import { UserSessionProvider } from "@/providers/session-provider";
-import { getCurrentUserRoles } from "@/server/auth/getCurrentUserRoles";
 import { UserSession } from "@/types/custom-supabase-types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { redirect, unauthorized } from "next/navigation";

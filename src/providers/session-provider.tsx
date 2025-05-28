@@ -1,10 +1,11 @@
 "use client";
-import { createClient } from "@/lib/supabase/supabaseClient"; // Assuming you have your Supabase client setup here
-import { UserSession } from "@/types/custom-supabase-types";
-import { Database } from "@/types/supabase";
+
+import { createClient } from "@/lib/supabase/supabaseClient"; // Your Supabase client instance
+import { UserSession } from "@/types/custom-supabase-types"; // Your custom session type (make sure it matches get_user_session RPC output)
+import { Database } from "@/types/supabase"; // Your Supabase generated types
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
-import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import React, { createContext, ReactNode, useContext, useEffect, useState, useCallback } from "react";
 
 interface UserSessionContextValue {
   userSession: UserSession | null;
@@ -16,97 +17,110 @@ const UserSessionContext = createContext<UserSessionContextValue | null>(null);
 
 interface UserSessionProviderProps {
   children: ReactNode;
-  userData: UserSession;
+  userData: UserSession | null; // `userData` can now be null if no session on server
 }
 
 export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ children, userData }) => {
-  const [userSession, setUserSession] = useState<UserSession | null>({
-    global_roles: userData.global_roles,
-    user_info: userData.user_info,
-    available_tenants: userData.available_tenants,
-  });
-  const [loadingSession, setLoadingSession] = useState<boolean>(true);
+  // Initialize state directly from userData prop, assuming it's pre-fetched from a server component
+  const [userSession, setUserSession] = useState<UserSession | null>(userData);
+  const [loadingSession, setLoadingSession] = useState<boolean>(!userData); // Set true if no initial userData
   const [sessionError, setSessionError] = useState<any>(null);
   const supabase = createClient();
 
-  useEffect(() => {
-    if (!userData) {
+  // Helper function to call the 'get_user_session' RPC and update state
+  const getSupabaseUserSession = useCallback(async (): Promise<UserSession | null> => {
+    setLoadingSession(true);
+    setSessionError(null); // Clear previous errors
+    try {
+      const { data, error } = await supabase.rpc("get_user_session");
+      if (error) {
+        console.error("Error fetching user session from RPC:", error);
+        setSessionError(error);
+        return null;
+      }
+      return data as UserSession;
+    } catch (error) {
+      console.error("Unexpected error during RPC call:", error);
+      setSessionError(error);
+      return null;
+    } finally {
       setLoadingSession(false);
-      return;
     }
+  }, [supabase]); // Dependency on supabase client instance
+
+  // Realtime handler for global role changes
+  const handleRoleChange = useCallback(
+    async (payload: RealtimePostgresChangesPayload<Database["public"]["Tables"]["user_global_roles"]["Row"]>) => {
+      // Get the current authenticated user's ID
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const currentUserId = user?.id || null;
+
+      // The payload contains the user_id of the row that changed
+      const changedUserId = (payload.new as any)?.user_id || (payload.old as any)?.user_id;
+
+      // Only re-fetch if the change is relevant to the current user's global roles
+      if (currentUserId && changedUserId === currentUserId) {
+        // Re-fetch the complete session from the server using the RPC
+        const updatedSession = await getSupabaseUserSession();
+        setUserSession(updatedSession);
+      } else {
+      }
+    },
+    [getSupabaseUserSession, setUserSession, supabase]
+  ); // Dependencies for useCallback
+
+  // Subscribe to auth state changes and Realtime updates
+  useEffect(() => {
+    // 1. Auth state changes
     const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      switch (_event) {
-        case "SIGNED_IN":
-          setUserSession({
-            global_roles: userData.global_roles,
-            user_info: userData.user_info,
-            available_tenants: userData.available_tenants,
-          });
-          break;
-        case "SIGNED_OUT":
-          setUserSession(null);
-          break;
-        default:
-          break;
+      data: { subscription: authSubscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (_event === "SIGNED_IN" && session) {
+        // When signed in, fetch the full session data using your RPC
+        const sessionData = await getSupabaseUserSession();
+        setUserSession(sessionData);
+      } else if (_event === "SIGNED_OUT") {
+        setUserSession(null);
+        // If you always want to redirect on sign out, uncomment this:
+        redirect("/");
       }
     });
 
-    const newRoles = supabase.channel("cms_user_roles").on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "cms_user_roles",
-      },
-      handleRoleChange
-    );
+    // 2. Realtime subscription for user_global_roles
+    // Only subscribe if a user is potentially logged in (i.e., userSession isn't null on mount)
+    // The filter will ensure we only get relevant updates.
+    const currentUserId = userSession?.user_info?.id;
+    let rolesChannel: ReturnType<typeof supabase.channel> | null = null;
 
-    newRoles.subscribe();
+    if (currentUserId) {
+      rolesChannel = supabase.channel(`user_global_roles_channel_${currentUserId}`).on(
+        "postgres_changes",
+        {
+          event: "*", // Listen for INSERT, UPDATE, DELETE
+          schema: "public",
+          table: "user_global_roles",
+          filter: `user_id=eq.${currentUserId}`, // Crucial: only get changes for THIS user
+        },
+        handleRoleChange
+      );
 
+      rolesChannel.subscribe();
+    } else return;
     return () => {
-      subscription.unsubscribe();
-      newRoles.unsubscribe();
+      authSubscription.unsubscribe();
+      if (rolesChannel) {
+        rolesChannel.unsubscribe();
+      }
     };
-  }, [supabase, userSession]);
+  }, [supabase, userSession?.user_info?.id, getSupabaseUserSession, handleRoleChange]); // Add dependencies
 
-  const handleRoleChange = (event: any) => {
-    const payload = event as RealtimePostgresChangesPayload<Database["public"]["Tables"]["cms_user_roles"]["Row"]>;
-
-    let newRoles = userSession?.global_roles || [];
-    switch (payload.eventType) {
-      case "INSERT":
-        if (payload.new && "id" in payload.new) {
-          newRoles.push({ id: payload.new.id, role: payload.new.role, user_id: payload.new.user_id });
-        }
-        break;
-      case "UPDATE":
-        console.log("Payload", payload);
-
-        if (payload.new && "id" in payload.new && "role" in payload.new) {
-          const newRole = { id: payload.new.id, role: payload.new.role, user_id: payload.new.user_id };
-
-          newRoles = newRoles.map((role) => (role.id === newRole.id ? newRole : role));
-        }
-        break;
-      case "DELETE":
-        newRoles = newRoles.filter((role) => role.id !== (payload.old && "id" in payload.old ? payload.old.id : ""));
-        break;
-      default:
-        break;
-    }
-
-    if (newRoles.length > 0 && userSession) {
-      setUserSession({
-        global_roles: newRoles,
-        user_info: userSession.user_info,
-        available_tenants: userSession.available_tenants,
-      });
-    }
-  };
-
-  if (!userSession) return redirect("/");
+  // Redirect if no user session is available (e.g., after sign-out or initial load)
+  // Ensure this is handled gracefully if there's a login page.
+  if (!userSession && !loadingSession && !sessionError) {
+    redirect("/");
+  }
 
   const value: UserSessionContextValue = {
     userSession,
@@ -122,6 +136,5 @@ export const useUserSession = (): UserSessionContextValue => {
   if (!context) {
     throw new Error("useUserSession must be used within a UserSessionProvider");
   }
-
   return context;
 };

@@ -4,9 +4,9 @@ import { createEnv } from "@t3-oss/env-nextjs";
 export const env = createEnv({
   server: {
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-    // SMTP
+    
     SMTP_HOST: z.string().min(1),
-    SMTP_PORT: z.number().min(1),
+    SMTP_PORT: z.string().min(1),
     SMTP_USER: z.string().min(1),    
     SMTP_PASSWORD: z.string().min(1),
     SMTP_FROM: z.string().min(1),

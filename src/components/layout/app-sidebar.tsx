@@ -135,12 +135,12 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        {/* <TeamSwitcher teams={data.teams} /> */}
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavProjects projects={data.projects} />
-        {userSession?.global_roles && userSession.global_roles.some((role) => role.role === "system_admin") && <NavAdmin projects={data.admin} />}
+        {userSession?.global_roles && userSession.global_roles.some((role) => role === "system_admin") && <NavAdmin projects={data.admin} />}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userSession!.user_info} />
