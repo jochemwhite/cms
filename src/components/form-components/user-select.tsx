@@ -44,70 +44,61 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
 
   return (
     <>
-    <Select
-      value={value}
-      open={open}
-      onOpenChange={async (open) => {
-        if (open && !fetched) {
-          await fetchUsers();
-        }
-        setOpen(open);
-      }}
+      <Select
+        value={value}
+        open={open}
+        onOpenChange={async (open) => {
+          if (open && !fetched) {
+            await fetchUsers();
+          }
+          setOpen(open);
+        }}
       >
-      <FormControl>
-        <SelectTrigger>
-          <SelectValue placeholder={placeholder || "Select a user"}>
-            {selectedUser
-              ? `${selectedUser.first_name} ${selectedUser.last_name} (${selectedUser.email})`
-              : null}
-          </SelectValue>
-        </SelectTrigger>
-      </FormControl>
-      <SelectContent>
-        <Command shouldFilter={false} className="p-0">
-          <CommandInput placeholder="Search users..." value={search} onValueChange={setSearch} autoFocus />
-          <CommandList>
-            {loading ? (
-              <div className="p-2 text-sm text-muted-foreground">Loading...</div>
-            ) : (
-              <>
-                <CommandEmpty>No users found.</CommandEmpty>
-                {filteredUsers.map((user) => (
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder={placeholder || "Select a user"}>
+              {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name} (${selectedUser.email})` : null}
+            </SelectValue>
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          <Command shouldFilter={false} className="p-0">
+            <CommandInput placeholder="Search users..." value={search} onValueChange={setSearch} autoFocus />
+            <CommandList>
+              {loading ? (
+                <div className="p-2 text-sm text-muted-foreground">Loading...</div>
+              ) : (
+                <>
+                  <CommandEmpty>No users found.</CommandEmpty>
+                  {filteredUsers.map((user) => (
+                    <CommandItem
+                      key={user.id}
+                      value={user.id}
+                      onSelect={() => {
+                        onChange(user.id);
+                        setOpen(false);
+                        setSheetOpen(false);
+                      }}
+                    >
+                      {user.first_name} {user.last_name} ({user.email})
+                    </CommandItem>
+                  ))}
                   <CommandItem
-                  key={user.id}
-                  value={user.id}
-                  onSelect={() => {
-                    onChange(user.id);
-                    setOpen(false);
-                    setSheetOpen(false);
-                  }}
+                    value="__create_new__"
+                    className="text-primary font-semibold border-t mt-2 pt-2"
+                    onSelect={() => {
+                      setSheetOpen(true);
+                    }}
                   >
-                    {user.first_name} {user.last_name} ({user.email})
+                    + Create new user…
                   </CommandItem>
-                ))}
-                <CommandItem value="__create_new__" className="text-primary font-semibold border-t mt-2 pt-2" onSelect={() => {
-                  setSheetOpen(true);
-                }}>
-                  + Create new user…
-                </CommandItem>
-              </>
-            )}
-          </CommandList>
-        </Command>
-      </SelectContent>
-    </Select>
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Create new user</SheetTitle>
-          </SheetHeader>
+                </>
+              )}
+            </CommandList>
+          </Command>
+        </SelectContent>
+      </Select>
 
-          <UserCreationForm onSuccess={() => {
-            setSheetOpen(false);
-          }} />
-
-        </SheetContent>
-      </Sheet>
     </>
   );
 };

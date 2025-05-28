@@ -32,7 +32,6 @@ export function useCountriesAndStates() {
     })
       .then((res) => res.json())
       .then((data: StatesByCountryResponse) => {
-        console.log(data);
         setStates(data.data.states);
         setLoadingStates(false);
       });

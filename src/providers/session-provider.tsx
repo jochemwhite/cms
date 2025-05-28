@@ -1,11 +1,13 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/supabaseClient"; // Your Supabase client instance
-import { UserSession } from "@/types/custom-supabase-types"; // Your custom session type (make sure it matches get_user_session RPC output)
-import { Database } from "@/types/supabase"; // Your Supabase generated types
+import { DeleteUser } from "@/actions/authentication/user-management";
+import { createClient } from "@/lib/supabase/supabaseClient";
+import { UserSession } from "@/types/custom-supabase-types";
+import { Database } from "@/types/supabase";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import React, { createContext, ReactNode, useContext, useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 
 interface UserSessionContextValue {
   userSession: UserSession | null;
@@ -17,17 +19,15 @@ const UserSessionContext = createContext<UserSessionContextValue | null>(null);
 
 interface UserSessionProviderProps {
   children: ReactNode;
-  userData: UserSession | null; // `userData` can now be null if no session on server
+  userData: UserSession | null;
 }
 
 export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ children, userData }) => {
-  // Initialize state directly from userData prop, assuming it's pre-fetched from a server component
   const [userSession, setUserSession] = useState<UserSession | null>(userData);
-  const [loadingSession, setLoadingSession] = useState<boolean>(!userData); // Set true if no initial userData
+  const [loadingSession, setLoadingSession] = useState<boolean>(!userData);
   const [sessionError, setSessionError] = useState<any>(null);
   const supabase = createClient();
 
-  // Helper function to call the 'get_user_session' RPC and update state
   const getSupabaseUserSession = useCallback(async (): Promise<UserSession | null> => {
     setLoadingSession(true);
     setSessionError(null); // Clear previous errors
@@ -46,9 +46,8 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
     } finally {
       setLoadingSession(false);
     }
-  }, [supabase]); // Dependency on supabase client instance
+  }, [supabase]);
 
-  // Realtime handler for global role changes
   const handleRoleChange = useCallback(
     async (payload: RealtimePostgresChangesPayload<Database["public"]["Tables"]["user_global_roles"]["Row"]>) => {
       // Get the current authenticated user's ID
@@ -69,9 +68,12 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
       }
     },
     [getSupabaseUserSession, setUserSession, supabase]
-  ); // Dependencies for useCallback
+  );
 
-  // Subscribe to auth state changes and Realtime updates
+
+
+
+
   useEffect(() => {
     // 1. Auth state changes
     const {
@@ -114,10 +116,8 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
         rolesChannel.unsubscribe();
       }
     };
-  }, [supabase, userSession?.user_info?.id, getSupabaseUserSession, handleRoleChange]); // Add dependencies
+  }, [supabase, userSession?.user_info?.id, getSupabaseUserSession, handleRoleChange]);
 
-  // Redirect if no user session is available (e.g., after sign-out or initial load)
-  // Ensure this is handled gracefully if there's a login page.
   if (!userSession && !loadingSession && !sessionError) {
     redirect("/");
   }

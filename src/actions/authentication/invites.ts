@@ -10,18 +10,9 @@ import InviteUserEmail from "../../../emails/InviteUserEmail";
 import { sendEmail } from "@/server/email/send-email";
 import { generateRandomPassword } from "@/server/utils/generateRandomPassword";
 import { revalidatePath } from "next/cache";
+import { UserFormValues } from "@/schemas/user-form";
 
-interface UserFormValues {
-  email: string;
-  first_name: string;
-  last_name: string;
-  global_role_id: string; // This should be the UUID of the global_role_types entry
-  send_invite: boolean;
-}
-
-export async function createUserInvite(
-  userValues: UserFormValues,
-): Promise<ActionResponse<void>> {
+export async function createUserInvite(userValues: UserFormValues): Promise<ActionResponse<void>> {
   const supabase = await createClient(); // Client for user-level operations (respects RLS)
   let newUserId: string | null = null; // To store the ID of the newly created auth user for cleanup
 
@@ -75,12 +66,12 @@ export async function createUserInvite(
         type: "invite",
       });
     } else {
-      // If NOT sending an invite, create user directly (no email sent by Supabase Auth)
+3      // If NOT sending an invite, create user directly (no email sent by Supabase Auth)
       const generatedPassword = generateRandomPassword(); // Generate a temporary password
       const { data: createUserData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
         email: userValues.email,
         password: generatedPassword,
-        email_confirm: true, // Auto-confirm email for immediate use
+        email_confirm: false, 
       });
 
       if (createUserError) {
@@ -99,12 +90,12 @@ export async function createUserInvite(
 
     // 4. Call the combined RPC function to create the profile and assign the role
     // This RPC handles inserting/updating public.users and inserting into user_global_roles.
-    const { error: rpcError } = await supabaseAdmin.rpc("create_user_profile_and_assign_role", {
+    const { error: rpcError } = await supabase.rpc("create_user_profile_and_assign_role", {
       p_user_id: newUserId,
       p_email: userValues.email,
       p_first_name: userValues.first_name,
       p_last_name: userValues.last_name,
-      p_role_type_id: userValues.global_role_id, // Pass the UUID of the role type
+      p_role_type_id: userValues.global_role, // Pass the UUID of the role type
     });
 
     if (rpcError) {

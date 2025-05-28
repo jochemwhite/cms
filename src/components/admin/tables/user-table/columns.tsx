@@ -1,5 +1,6 @@
 "use client";
 
+import { DeleteUser } from "@/actions/authentication/user-management";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,9 @@ import { useUsers } from "@/providers/users-providers";
 import { AvailableRole, UserForProvider } from "@/types/custom-supabase-types";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Copy, Edit, MoreHorizontal, Trash2, X } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import UserSheet from "../../sheets/user-sheet";
 
 // Helper function to format dates, handles null gracefully
 const formatDate = (dateString: string | null) => {
@@ -209,20 +212,13 @@ export const columns: ColumnDef<UserForProvider>[] = [
     id: "actions",
     header: () => <div className="text-right">Actions</div>,
     cell: ({ row, table }) => {
+      const [open, setOpen] = useState(false);
       const user = row.original;
       const { userSession } = useUserSession();
-      const handleEdit = () => {
-        const onEdit = (table.options.meta as any)?.onEdit;
-        if (onEdit) {
-          onEdit(user.id);
-        }
-      };
+      const { handleDeleteUser } = useUsers();
 
       const handleDelete = () => {
-        const onDelete = (table.options.meta as any)?.onDelete;
-        if (onDelete) {
-          onDelete(user.id);
-        }
+        handleDeleteUser(user.id);
       };
 
       const canEdit = user.id !== userSession?.user_info?.id;
@@ -253,7 +249,7 @@ export const columns: ColumnDef<UserForProvider>[] = [
               </DropdownMenuItem>
               {canEdit && <DropdownMenuSeparator />}
               {canEdit && (
-                <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => setOpen(true)} className="cursor-pointer">
                   <Edit className="mr-2 h-4 w-4" />
                   Edit User
                 </DropdownMenuItem>
@@ -266,6 +262,17 @@ export const columns: ColumnDef<UserForProvider>[] = [
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+          <UserSheet
+            sheetOpen={open}
+            setSheetOpen={setOpen}
+            initialData={{
+              email: user.email,
+              first_name: user.first_name || "",
+              last_name: user.last_name || "",
+              global_role: user.roles[0].role_type_id,
+              send_invite: false,
+            }}
+          />
         </div>
       );
     },

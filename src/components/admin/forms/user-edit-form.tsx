@@ -16,7 +16,7 @@ import { Loader2 } from "lucide-react";
 
 export interface UserCreationFormProps {
   onSuccess: (user: any) => void;
-  initialData?: UserFormValues;
+  initialData: UserFormValues;
 }
 
 export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, initialData }) => {
@@ -33,9 +33,8 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, i
   });
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const[loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const [roles, setRoles] = React.useState<AvailableRole[]>([]);
-
 
   const onSubmit = async (data: UserFormValues) => {
     setIsSubmitting(true);
@@ -53,7 +52,6 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, i
       setIsSubmitting(false);
     }
   };
-
 
   // fetch roles from supabase
   useEffect(() => {

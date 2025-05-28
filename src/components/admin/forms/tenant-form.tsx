@@ -61,9 +61,7 @@ export const TenantForm: React.FC = () => {
     }
   }, [form.watch("name")]);
 
-  React.useEffect(() => {
-    console.log(form.watch());
-  }, [form.watch()]);
+
 
   // Fetch states when country changes
   React.useEffect(() => {

@@ -1,7 +1,8 @@
 "use client";
 
+import { DeleteUser } from "@/actions/authentication/user-management";
 import { AvailableRole, UserForProvider } from "@/types/custom-supabase-types";
-import { createContext, ReactNode, useCallback, useContext, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface UsersContextType {
@@ -11,7 +12,7 @@ interface UsersContextType {
   error: string | null;
   addUser: (user: Omit<UserForProvider, "id">) => Promise<void>;
   updateUser: (id: string, updates: Partial<UserForProvider>) => Promise<void>;
-  deleteUser: (id: string) => Promise<void>;
+  handleDeleteUser: (id: string) => Promise<void>;
   getUserById: (id: string) => UserForProvider | undefined;
   availableRoles: AvailableRole[];
 }
@@ -29,6 +30,11 @@ export function UsersProvider({ children, initialUsers, initialAvailableRoles }:
   const [availableRoles, setAvailableRoles] = useState<AvailableRole[]>(initialAvailableRoles);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUsers(initialUsers);
+    setAvailableRoles(initialAvailableRoles);
+  }, [initialUsers, initialAvailableRoles]);
 
   const addUser = useCallback(async (user: Omit<UserForProvider, "id">) => {
     try {
@@ -53,9 +59,7 @@ export function UsersProvider({ children, initialUsers, initialAvailableRoles }:
     try {
       setLoading(true);
       // Here you would typically make an API call to update the user
-      setUsers((prev) =>
-        prev.map((user) => (user.id === id ? { ...user, ...updates } : user))
-      );
+      setUsers((prev) => prev.map((user) => (user.id === id ? { ...user, ...updates } : user)));
       toast.success("User updated successfully");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update user");
@@ -65,19 +69,24 @@ export function UsersProvider({ children, initialUsers, initialAvailableRoles }:
     }
   }, []);
 
-  const deleteUser = useCallback(async (id: string) => {
-    try {
-      setLoading(true);
-      // Here you would typically make an API call to delete the user
-      setUsers((prev) => prev.filter((user) => user.id !== id));
-      toast.success("User deleted successfully");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete user");
-      toast.error("Failed to delete user");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const handleDeleteUser = async (userId: string) => {
+    toast.promise(
+      async () => {
+        const { data, error, success } = await DeleteUser(userId);
+        if (!success) {
+          throw error || "Failed to delete user";
+        }
+        return data;
+      },
+      {
+        loading: "Deleting user...",
+        success: "User deleted successfully",
+        error: (error) => {
+          return error;
+        },
+      }
+    );
+  };
 
   const getUserById = useCallback(
     (id: string) => {
@@ -93,7 +102,7 @@ export function UsersProvider({ children, initialUsers, initialAvailableRoles }:
     error,
     addUser,
     updateUser,
-    deleteUser,
+    handleDeleteUser,
     getUserById,
     availableRoles,
   };

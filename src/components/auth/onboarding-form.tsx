@@ -79,7 +79,6 @@ export default function OnboardingForm({ user }: props) {
         console.log(error);
         return;
       }
-      console.log(data);
     }
 
     try {

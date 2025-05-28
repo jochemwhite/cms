@@ -27,7 +27,6 @@ interface UserRawData {
   }>;
 }
 
-
 export default async function UsersLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
 
@@ -79,8 +78,6 @@ export default async function UsersLayout({ children }: { children: React.ReactN
     return <div>Error loading users: {usersError.message}</div>;
   }
 
-  console.log(usersRaw);
-
   // 3. Transform Raw User Data to Desired Format
   const usersWithRoles: UserForProvider[] = (usersRaw || []).map((user) => {
     return {
@@ -127,4 +124,3 @@ export default async function UsersLayout({ children }: { children: React.ReactN
     </UsersProvider>
   );
 }
-
