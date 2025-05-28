@@ -9,6 +9,7 @@ import { render } from "@react-email/components";
 import InviteUserEmail from "../../../emails/InviteUserEmail";
 import { sendEmail } from "@/server/email/send-email";
 import { generateRandomPassword } from "@/server/utils/generateRandomPassword";
+import { revalidatePath } from "next/cache";
 
 interface UserFormValues {
   email: string;
@@ -129,6 +130,7 @@ export async function createUserInvite(
       }
     }
 
+    revalidatePath("/dashboard/admin/users", "layout");
     return { success: true };
   } catch (overallError: any) {
     console.error("An unexpected error occurred in createUserInvite:", overallError);

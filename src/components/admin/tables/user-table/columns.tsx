@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,10 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUserSession } from "@/providers/session-provider";
 import { useUsers } from "@/providers/users-providers";
 import { AvailableRole, UserForProvider } from "@/types/custom-supabase-types";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Copy, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { ArrowUpDown, Copy, Edit, MoreHorizontal, Trash2, X } from "lucide-react";
+import { toast } from "sonner";
 
 // Helper function to format dates, handles null gracefully
 const formatDate = (dateString: string | null) => {
@@ -67,10 +70,18 @@ export const columns: ColumnDef<UserForProvider>[] = [
     },
     cell: ({ row }) => {
       const user = row.original;
+      const { userSession } = useUserSession();
+      const isUser = user.id === userSession?.user_info?.id;
+
       return (
         <div className="flex items-center space-x-2">
           <div className="font-medium">
-            {user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'Name not set'}
+            {user.first_name || user.last_name ? `${user.first_name || ""} ${user.last_name || ""}`.trim() : "Name not set"}
+            {isUser && (
+              <Badge variant="secondary" className="ml-2 w-fit">
+                You
+              </Badge>
+            )}
           </div>
         </div>
       );
@@ -94,12 +105,12 @@ export const columns: ColumnDef<UserForProvider>[] = [
     accessorKey: "role",
     header: ({ column }) => {
       const { availableRoles } = useUsers();
-      
+
       // Options for the role filter dropdown in the table header
       const rolesFilterOptions = [
         { id: "all", role_name: "All Roles", description: "Filter for all roles" },
         ...availableRoles, // Existing roles with their IDs and names
-        { id: "no_role", role_name: "No Role", description: "Filter for users with no assigned role" }
+        { id: "no_role", role_name: "No Role", description: "Filter for users with no assigned role" },
       ];
 
       return (
@@ -136,9 +147,9 @@ export const columns: ColumnDef<UserForProvider>[] = [
       const user = row.original;
       const currentRoleTypeId = getCurrentRole(user); // Get the ID of the user's current role
       const { availableRoles } = useUsers();
-
+      const { userSession } = useUserSession();
       // Example: Prevent editing a specific user's role (e.g., a hardcoded admin)
-      const canEditRole = user.id !== "uuid-user-1"; 
+      const canEditRole = user.id !== userSession?.user_info?.id;
 
       const handleRoleChange = (newRoleTypeId: string) => {
         const onRoleChange = (table.options.meta as any)?.onRoleChange;
@@ -146,30 +157,30 @@ export const columns: ColumnDef<UserForProvider>[] = [
           onRoleChange(user.id, newRoleTypeId);
         }
       };
-      
+
       return (
         <div className="flex flex-col space-y-2">
-          <Select value={currentRoleTypeId} onValueChange={handleRoleChange} disabled={!canEditRole}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select role" />
-            </SelectTrigger>
-            <SelectContent>
-              {/* Options for individual user role assignment */}
-              {availableRoles.map((role, index: number) => (
-                <SelectItem key={role.id} value={role.id}>
-                  <div className="flex flex-col">
-                    <span>{role.role_name}</span>
-                  </div>
-                </SelectItem>
-              ))}
-              {/* Option to remove all roles or assign "no role" */}
-              <SelectItem key="no_role_assign" value="no_role">
-                <div className="flex flex-col">
-                  <span>No Role</span>
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          {canEditRole ? (
+            <Select value={currentRoleTypeId} onValueChange={handleRoleChange} disabled={!canEditRole}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                {/* Options for individual user role assignment */}
+                {availableRoles.map((role, index: number) => (
+                  <SelectItem key={role.id} value={role.id}>
+                    <div className="flex flex-col">
+                      <span>{role.role_name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Badge variant="secondary" className="w-fit">
+              {user.roles[0].role_name}
+            </Badge>
+          )}
         </div>
       );
     },
@@ -199,7 +210,7 @@ export const columns: ColumnDef<UserForProvider>[] = [
     header: () => <div className="text-right">Actions</div>,
     cell: ({ row, table }) => {
       const user = row.original;
-
+      const { userSession } = useUserSession();
       const handleEdit = () => {
         const onEdit = (table.options.meta as any)?.onEdit;
         if (onEdit) {
@@ -214,6 +225,13 @@ export const columns: ColumnDef<UserForProvider>[] = [
         }
       };
 
+      const canEdit = user.id !== userSession?.user_info?.id;
+
+      const handleCopy = (text: string, label: string) => {
+        navigator.clipboard.writeText(text);
+        toast.success(`${label} copied to clipboard`);
+      };
+
       return (
         <div className="text-right">
           <DropdownMenu>
@@ -225,23 +243,27 @@ export const columns: ColumnDef<UserForProvider>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => copyToClipboard(user.id, "User ID")} className="cursor-pointer">
+              <DropdownMenuItem onClick={() => handleCopy(user.id, "User ID")} className="cursor-pointer">
                 <Copy className="mr-2 h-4 w-4" />
                 Copy User ID
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => copyToClipboard(user.email, "Email")} className="cursor-pointer">
+              <DropdownMenuItem onClick={() => handleCopy(user.email, "Email")} className="cursor-pointer">
                 <Copy className="mr-2 h-4 w-4" />
                 Copy Email
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
-                <Edit className="mr-2 h-4 w-4" />
-                Edit User
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete User
-              </DropdownMenuItem>
+              {canEdit && <DropdownMenuSeparator />}
+              {canEdit && (
+                <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit User
+                </DropdownMenuItem>
+              )}
+              {canEdit && (
+                <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete User
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

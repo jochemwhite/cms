@@ -1,6 +1,5 @@
 "use client";
 
-import { UserEntry } from "@/components/admin/tables/user-table/columns";
 import { AvailableRole, UserForProvider } from "@/types/custom-supabase-types";
 import { createContext, ReactNode, useCallback, useContext, useState } from "react";
 import { toast } from "sonner";

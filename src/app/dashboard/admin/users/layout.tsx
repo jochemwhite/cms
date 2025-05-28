@@ -79,6 +79,8 @@ export default async function UsersLayout({ children }: { children: React.ReactN
     return <div>Error loading users: {usersError.message}</div>;
   }
 
+  console.log(usersRaw);
+
   // 3. Transform Raw User Data to Desired Format
   const usersWithRoles: UserForProvider[] = (usersRaw || []).map((user) => {
     return {
