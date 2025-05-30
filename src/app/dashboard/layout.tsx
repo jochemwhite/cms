@@ -22,6 +22,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     return redirect("/onboarding");
   }
 
+  console.log(data);
 
   return (
     <UserSessionProvider userData={data}>

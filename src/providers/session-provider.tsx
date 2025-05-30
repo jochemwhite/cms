@@ -71,6 +71,11 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
   );
 
 
+  useEffect(() => {
+    if (userData) {
+      setUserSession(userData);
+    }
+  }, [userData]);
 
 
 

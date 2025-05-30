@@ -16,6 +16,7 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/c
 import { Database } from "@/types/supabase";
 import { logout } from "@/app/(auth)/_actions";
 import { useUserSession } from "@/providers/session-provider";
+import Link from "next/link";
 
 export function NavUser({ user }: { user: Database["public"]["Tables"]["users"]["Row"] }) {
   const { isMobile } = useSidebar();
@@ -58,14 +59,15 @@ export function NavUser({ user }: { user: Database["public"]["Tables"]["users"][
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuGroup>
-            </DropdownMenuGroup>
+            <DropdownMenuGroup></DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
+              <Link href="/dashboard/settings/account">
+                <DropdownMenuItem>
+                  <BadgeCheck />
+                  Account
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => logout()}>

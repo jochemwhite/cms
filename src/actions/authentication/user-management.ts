@@ -11,10 +11,11 @@ import { sendEmail } from "@/server/email/send-email";
 import { ActionResponse } from "@/types/actions";
 import { Database } from "@/types/supabase";
 import { render } from "@react-email/components";
-import { User } from "@supabase/supabase-js";
+import { SupabaseClient, User } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import ResetPasswordEmail from "../../../emails/ResetPassword";
 import InviteUserEmail from "../../../emails/InviteUserEmail";
+import { uploadProfileImage } from "@/server/utils/upload-profile-image";
 
 // delete user
 export async function DeleteUser(user_id: string): Promise<ActionResponse<User | null>> {
@@ -289,6 +290,8 @@ export async function ResendOnboardingEmail(user_id: string): Promise<ActionResp
 }
 
 // update user onboarding status
+
+
 export async function UpdateUserOnboardingStatus(user_id: string, formData: OnboardingFormValues): Promise<ActionResponse<void>> {
   const supabase = await createClient();
   try {
@@ -298,28 +301,11 @@ export async function UpdateUserOnboardingStatus(user_id: string, formData: Onbo
       obj && typeof obj === "object" && typeof obj.name === "string" && typeof obj.type === "string" && typeof obj.size === "number";
 
     if (isFileLike(formData.profileImage)) {
-      const file = formData.profileImage;
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-      const maxSizeMB = 2;
-
-      if (!allowedTypes.includes(file.type)) {
-        return { success: false, error: "Only JPG, PNG, or WEBP images are allowed." };
+      const result = await uploadProfileImage(user_id, formData.profileImage);
+      if (result.error) {
+        return { success: false, error: result.error };
       }
-      if (file.size > maxSizeMB * 1024 * 1024) {
-        return { success: false, error: `File size must be less than ${maxSizeMB}MB.` };
-      }
-
-      const type = file.type.split("/")[1];
-      const filePath = `/profile_images/${user_id}-profile_image.${type}`;
-      const { data, error } = await supabase.storage.from("users").upload(filePath, file, {
-        upsert: true,
-      });
-
-      if (error) {
-        console.error(error);
-        return { success: false, error: error.message };
-      }
-      profileImageUrl = data.path;
+      profileImageUrl = result.url;
     }
 
     // Prepare update object
@@ -329,7 +315,7 @@ export async function UpdateUserOnboardingStatus(user_id: string, formData: Onbo
       last_name: formData.lastname,
     };
     if (profileImageUrl) {
-      updateObj.avatar = `${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/users/${profileImageUrl}`;
+      updateObj.avatar = profileImageUrl;
     }
 
     // Update user profile
