@@ -1,6 +1,6 @@
 "use client";
 
-import { DeleteUser, SendPasswordResetEmail } from "@/actions/authentication/user-management";
+import { DeleteUser, ResendOnboardingEmail, SendPasswordResetEmail } from "@/actions/authentication/user-management";
 import { AvailableRole, UserForProvider } from "@/types/custom-supabase-types";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ interface UsersContextType {
   getUserById: (id: string) => UserForProvider | undefined;
   availableRoles: AvailableRole[];
   handleSendPasswordResetEmail: (email: string) => Promise<void>;
+  handleResendOnboardingEmail: (userId: string) => Promise<void>;
 }
 
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
@@ -108,6 +109,26 @@ export function UsersProvider({ children, initialUsers, initialAvailableRoles }:
     );
   };
 
+  const handleResendOnboardingEmail = async (userId: string) => {
+
+    toast.promise(
+      async () => {
+        const { success, error } = await ResendOnboardingEmail(userId);
+        if (!success) {
+          throw error || "Failed to resend onboarding email";
+        }
+        return true;
+      },
+      {
+        loading: "Resending onboarding email...",
+        success: "Onboarding email resent successfully",
+        error: (error) => {
+          return error;
+        },
+      }
+    );
+  };
+
   const getUserById = useCallback(
     (id: string) => {
       return users.find((user) => user.id === id);
@@ -126,6 +147,7 @@ export function UsersProvider({ children, initialUsers, initialAvailableRoles }:
     getUserById,
     availableRoles,
     handleSendPasswordResetEmail,
+    handleResendOnboardingEmail,
     };
 
   return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;

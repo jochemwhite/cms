@@ -13,14 +13,24 @@ import { AvailableRole } from "@/types/custom-supabase-types";
 import { createClient } from "@/lib/supabase/supabaseClient";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { UpdateUser } from "@/actions/authentication/user-management";
+import { useUserSession } from "@/providers/session-provider";
+import { useUsers } from "@/providers/users-providers";
+import { GlobalRoleSelect } from "@/components/form-components/global-role-select";
 
 export interface UserCreationFormProps {
   onSuccess: (user: any) => void;
   initialData?: UserFormValues;
+  isEdit?: boolean;
+  user_id?: string;
 }
 
-export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, initialData }) => {
-  const supabase = createClient();
+export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, initialData, isEdit, user_id }) => {
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const { availableRoles } = useUsers();
+
   const form = useUserForm<UserFormValues>({
     resolver: zodResolver(UserSchema),
     defaultValues: {
@@ -31,15 +41,22 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, i
       global_role: initialData?.global_role || "3589969a-81b2-461a-a94e-e76a1fcd7961",
     },
   });
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const[loading, setLoading] = React.useState(false);
-  const [roles, setRoles] = React.useState<AvailableRole[]>([]);
 
 
   const onSubmit = async (data: UserFormValues) => {
     setIsSubmitting(true);
     setError(null);
+
+
+    if (isEdit && user_id) {
+      await updateUser(data, user_id);
+    } else {
+      await newUserSubmit(data);
+    }
+  };
+
+
+  const newUserSubmit = async (data: UserFormValues) => {
     try {
       const response = await createUserInvite(data);
       if (response.success) {
@@ -52,23 +69,26 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, i
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
+
+  const updateUser = async (data: UserFormValues, user_id: string) => {
+    try {
+      const response = await UpdateUser(user_id, data);
+      if (response.success) {
+        onSuccess(response.data);
+      } else {
+        setError(response.error ?? "Unknown error occurred");
+      }
+    } catch (e) {
+      setError("Failed to update user.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
 
   // fetch roles from supabase
-  useEffect(() => {
-    const fetchRoles = async () => {
-      setLoading(true);
-      const { data, error } = await supabase.from("global_role_types").select("*");
-      if (error) {
-        toast.error("Failed to fetch roles");
-      } else {
-        setRoles(data);
-      }
-      setLoading(false);
-    };
-    fetchRoles();
-  }, []);
+
 
   return (
     <Form {...form}>
@@ -106,7 +126,7 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, i
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" {...field} />
+                <Input type="email" {...field} disabled={isEdit} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -118,46 +138,32 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, i
           render={({ field }) => (
             <FormItem>
               <FormLabel>Role</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <GlobalRoleSelect
+                value={field.value}
+                onChange={field.onChange}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {!isEdit && (
+          <FormField
+            control={form.control}
+            name="send_invite"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between">
+                <FormLabel>Send Invite</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    {loading ? (
-                      <div className="flex items-center justify-center">
-                        <Loader2 className="animate-spin" />
-                      </div>
-                    ) : (
-                      <SelectValue placeholder="Select a role" />
-                    )}
-                  </SelectTrigger>
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
-                <SelectContent>
-                  {roles.map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.role_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="send_invite"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between">
-              <FormLabel>Send Invite</FormLabel>
-              <FormControl>
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         {error && <div className="text-red-500 text-sm">{error}</div>}
         <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? "Creating..." : "Create User"}
+          {isSubmitting ? (isEdit ? "Updating..." : "Creating...") : isEdit ? "Update User" : "Create User"}
         </Button>
       </form>
     </Form>

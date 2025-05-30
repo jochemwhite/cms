@@ -15,7 +15,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   
   if (error || !data) {
     if (error) console.log(error);
-    unauthorized();
+    return unauthorized();
   }
 
   if(!data.user_info.is_onboarded) {

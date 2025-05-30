@@ -18,7 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/supabaseClient";
 import { Database } from "@/types/supabase";
 import { FileUpload } from "../ui/file-upload";
-import { OnboardingFormValues, OnboardingSchema } from "@/schemas/onboarding";
+import { OnboardingFormValues, OnboardingSchema } from "@/schemas/onboarding-form";
 import { UpdateUserOnboardingStatus } from "@/actions/authentication/user-management";
 import { toast } from "sonner";
 

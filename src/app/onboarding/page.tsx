@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/supabaseServerClient";
 import { UserSession } from "@/types/custom-supabase-types";
 import { PostgrestError } from "@supabase/supabase-js";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { redirect, unauthorized, } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Onboarding | Set up your account",
@@ -12,17 +12,25 @@ export const metadata: Metadata = {
 
 export default async function OnboardingPage() {
   const supabase = await createClient();
-
-  const { data, error } = (await supabase.rpc("get_user_session").single()) as { data: UserSession; error: PostgrestError | null };
+  const { data, error } = await supabase.auth.getUser();
 
   if (error || !data) {
     console.log(error);
-    redirect("/");
+    await supabase.auth.signOut();
+    return unauthorized();
   }
 
-  if(data.user_info.is_onboarded) {
+  const { data: userData, error: userError } = await supabase.from("users").select("*").eq("id", data.user.id).single();
+
+  if (userError || !userData) {
+    console.log(userError);
+    return <div>Error</div>;
+  }
+
+  if (userData.is_onboarded) {
     return redirect("/dashboard");
   }
+
 
   return (
     <div className="container flex h-screen flex-col items-center justify-center">
@@ -31,7 +39,7 @@ export default async function OnboardingPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Welcome aboard!</h1>
           <p className="text-sm text-muted-foreground">Let's set up your account in just a few steps</p>
         </div>
-        <OnboardingForm user={data.user_info} />
+        <OnboardingForm user={userData} />
       </div>
     </div>
   );

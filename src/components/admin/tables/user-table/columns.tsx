@@ -1,6 +1,6 @@
 "use client";
 
-import { DeleteUser } from "@/actions/authentication/user-management";
+import { DeleteUser, UpdateUserRole } from "@/actions/authentication/user-management";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import UserSheet from "../../sheets/user-sheet";
 import { Modal } from "@/components/ui/modal";
 import UserTableActions from "./user-table-actions";
+import { GlobalRoleSelect } from "@/components/form-components/global-role-select";
 
 // Helper function to format dates, handles null gracefully
 const formatDate = (dateString: string | null) => {
@@ -157,30 +158,27 @@ export const columns: ColumnDef<UserForProvider>[] = [
       const canEditRole = user.id !== userSession?.user_info?.id;
 
       const handleRoleChange = (newRoleTypeId: string) => {
-        const onRoleChange = (table.options.meta as any)?.onRoleChange;
-        if (onRoleChange) {
-          onRoleChange(user.id, newRoleTypeId);
-        }
+        toast.promise(async() => {
+          const response = await UpdateUserRole(user.id, newRoleTypeId);
+          if (response.success) {
+            return "Role updated successfully";
+          }
+          return response.error;
+        }, {
+          loading: "Updating role...",
+          success: "Role updated successfully",
+          error: "Failed to update role",
+        });
       };
 
       return (
         <div className="flex flex-col space-y-2">
           {canEditRole ? (
-            <Select value={currentRoleTypeId} onValueChange={handleRoleChange} disabled={!canEditRole}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select role" />
-              </SelectTrigger>
-              <SelectContent>
-                {/* Options for individual user role assignment */}
-                {availableRoles.map((role, index: number) => (
-                  <SelectItem key={role.id} value={role.id}>
-                    <div className="flex flex-col">
-                      <span>{role.role_name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <GlobalRoleSelect
+              value={currentRoleTypeId}
+              onChange={handleRoleChange}
+              placeholder="Select role"
+            />
           ) : (
             <Badge variant="secondary" className="w-fit">
               {user.roles[0].role_name}
@@ -220,9 +218,7 @@ export const columns: ColumnDef<UserForProvider>[] = [
       const { handleDeleteUser } = useUsers();
       const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-      const handleDelete = () => {
-        handleDeleteUser(user.id);
-      };
+ 
 
       const canEdit = user.id !== userSession?.user_info?.id;
 

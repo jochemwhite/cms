@@ -4,7 +4,7 @@ import { FormControl } from "@/components/ui/form";
 import { createClient } from "@/lib/supabase/supabaseClient";
 import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
-import { UserCreationForm } from "../admin/forms/UserCreationForm";
+import { UserCreationForm } from "../admin/forms/user-create-form";
 
 export interface UserSelectProps {
   value: string | undefined;

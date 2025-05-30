@@ -1,19 +1,20 @@
 "use server";
 
+import { env } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/SupabaseAdminClient";
 import { createClient } from "@/lib/supabase/supabaseServerClient";
-import { OnboardingFormValues } from "@/schemas/onboarding";
+import { OnboardingFormValues } from "@/schemas/onboarding-form";
+import { UserFormValues } from "@/schemas/user-form";
 import { checkRequiredRoles } from "@/server/auth/check-required-roles";
 import generateLink from "@/server/email/generateLink";
 import { sendEmail } from "@/server/email/send-email";
 import { ActionResponse } from "@/types/actions";
+import { Database } from "@/types/supabase";
 import { render } from "@react-email/components";
 import { User } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import ResetPasswordEmail from "../../../emails/ResetPassword";
-import { Database } from "@/types/supabase";
-import { env } from "@/lib/env";
+import InviteUserEmail from "../../../emails/InviteUserEmail";
 
 // delete user
 export async function DeleteUser(user_id: string): Promise<ActionResponse<User | null>> {
@@ -55,6 +56,98 @@ export async function DeleteUser(user_id: string): Promise<ActionResponse<User |
     console.error(err);
     return { error: err instanceof Error ? err.message : "Unknown error", success: false };
   }
+}
+
+// update user
+export async function UpdateUser(user_id: string, formData: Partial<UserFormValues>): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+  // check if user is admin
+  const { data: currentUser, error: currentUserError } = await supabase.auth.getUser();
+  if (currentUserError || !currentUser) {
+    return { success: false, error: "Unauthorized: User not authenticated." };
+  }
+  const hasPermission = await checkRequiredRoles(currentUser.user.id, ["system_admin"]);
+  if (!hasPermission) {
+    return { success: false, error: "User does not have permission to update users" };
+  }
+
+  // update user
+  const { data, error } = await supabaseAdmin
+    .from("users")
+    .update({
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+    })
+    .eq("id", user_id);
+  if (error) {
+    console.error(error);
+    return { success: false, error: error.message };
+  }
+
+  // update user roles
+  const { data: rolesData, error: rolesError } = await supabaseAdmin
+    .from("user_global_roles")
+    .update({
+      global_role_type_id: formData.global_role,
+    })
+    .eq("user_id", user_id);
+  if (rolesError) {
+    console.error(rolesError);
+  }
+
+  // insert audit log
+  await supabaseAdmin.from("audit_logs").insert({
+    event_type: "admin_update_user",
+    user_id: currentUser.user.id,
+    target_user_id: user_id,
+    metadata: {
+      ...formData,
+    },
+    ip_address: null,
+    user_agent: null,
+  });
+
+  revalidatePath("/dashboard/admin/users", "layout");
+  return { success: true };
+}
+
+// update user role
+export async function UpdateUserRole(user_id: string, role_id: string): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+
+  // check if user is admin
+  const { data: currentUser, error: currentUserError } = await supabase.auth.getUser();
+  if (currentUserError || !currentUser) {
+    return { success: false, error: "Unauthorized: User not authenticated." };
+  }
+  const hasPermission = await checkRequiredRoles(currentUser.user.id, ["system_admin"]);
+  if (!hasPermission) {
+    return { success: false, error: "User does not have permission to update user roles" };
+  }
+  const { data, error } = await supabaseAdmin
+    .from("user_global_roles")
+    .update({
+      global_role_type_id: role_id,
+    })
+    .eq("user_id", user_id);
+
+  if (error) {
+    console.error(error);
+    return { success: false, error: error.message };
+  }
+
+  // insert audit log
+  await supabaseAdmin.from("audit_logs").insert({
+    event_type: "admin_update_user_role",
+    user_id: currentUser.user.id,
+    target_user_id: user_id,
+    metadata: { role_id },
+    ip_address: null,
+    user_agent: null,
+  });
+
+  revalidatePath("/dashboard/admin/users", "layout");
+  return { success: true };
 }
 
 // send password reset email
@@ -129,6 +222,72 @@ export async function SendPasswordResetEmail(email: string): Promise<ActionRespo
   }
 }
 
+// resend onboarding email
+export async function ResendOnboardingEmail(user_id: string): Promise<ActionResponse<void>> {
+  try {
+    const supabase = await createClient();
+
+    // check if user is admin
+    const { data: currentUser, error: currentUserError } = await supabase.auth.getUser();
+    if (currentUserError || !currentUser) {
+      return { success: false, error: "Unauthorized: User not authenticated." };
+    }
+    const hasPermission = await checkRequiredRoles(currentUser.user.id, ["system_admin"]);
+    if (!hasPermission) {
+      return { success: false, error: "User does not have permission to resend onboarding emails" };
+    }
+
+    // get user
+    const { data: user, error: userError } = await supabaseAdmin.from("users").select("*").eq("id", user_id).single();
+    if (userError) {
+      console.error(userError);
+      return { success: false, error: userError.message };
+    }
+
+    const { data: inviteData, error: generateLinkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "magiclink", 
+      email: user.email,
+    });
+
+    if (generateLinkError) {
+      console.error("Error generating invite link:", generateLinkError);
+      return { success: false, error: generateLinkError.message };
+    }
+    const inviteLink = generateLink({
+      next: "/onboarding", // Or your desired onboarding path
+      token: inviteData.properties.hashed_token,
+      type: "magiclink",
+    });
+
+    try {
+      const emailHtml = await render(
+        InviteUserEmail({
+          yourName: "Amrio", // Replace with dynamic sender name if needed
+          setupLink: inviteLink,
+          clientName: user.email, // Or userValues.first_name
+        })
+      );
+      await sendEmail({
+        to: user.email,
+        subject: "Invite to Amrio CMS",
+        text: "Invite to Amrio CMS",
+        html: emailHtml,
+      });
+    } catch (emailError) {
+      console.error("Error sending invite email:", emailError);
+      throw emailError;
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in ResendOnboardingEmail:", error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "An unknown error occurred"
+    };
+  }
+}
+
 // update user onboarding status
 export async function UpdateUserOnboardingStatus(user_id: string, formData: OnboardingFormValues): Promise<ActionResponse<void>> {
   const supabase = await createClient();
@@ -174,10 +333,7 @@ export async function UpdateUserOnboardingStatus(user_id: string, formData: Onbo
     }
 
     // Update user profile
-    const { error: userUpdateError } = await supabase
-      .from("users")
-      .update(updateObj)
-      .eq("id", user_id);
+    const { error: userUpdateError } = await supabase.from("users").update(updateObj).eq("id", user_id);
 
     if (userUpdateError) {
       console.error(userUpdateError);

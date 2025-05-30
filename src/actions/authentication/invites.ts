@@ -51,7 +51,7 @@ export async function createUserInvite(userValues: UserFormValues): Promise<Acti
     if (userValues.send_invite) {
       // If sending an invite, use generateLink which creates user and sends email
       const { data: inviteData, error: generateLinkError } = await supabaseAdmin.auth.admin.generateLink({
-        type: "invite",
+        type: "magiclink",
         email: userValues.email,
       });
 
@@ -63,10 +63,9 @@ export async function createUserInvite(userValues: UserFormValues): Promise<Acti
       inviteLink = generateLink({
         next: "/onboarding", // Or your desired onboarding path
         token: inviteData.properties.hashed_token,
-        type: "invite",
+        type: "magiclink",
       });
-    } else {
-      3; // If NOT sending an invite, create user directly (no email sent by Supabase Auth)
+    } else { 
       const generatedPassword = generateRandomPassword(); // Generate a temporary password
       const { data: createUserData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
         email: userValues.email,
@@ -121,6 +120,7 @@ export async function createUserInvite(userValues: UserFormValues): Promise<Acti
         });
       } catch (emailError) {
         console.error("Error sending invite email:", emailError);
+        throw emailError;
       }
     }
 

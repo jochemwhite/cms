@@ -21,7 +21,7 @@ export default function UserTableActions({ user, canEdit }: { user: UserForProvi
   const [open, setOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const copyToClipboard = useCopyToClipboard();
-  const { handleSendPasswordResetEmail } = useUsers();
+  const { handleSendPasswordResetEmail, handleResendOnboardingEmail } = useUsers();
 
   return (
     <div className="text-right">
@@ -46,10 +46,18 @@ export default function UserTableActions({ user, canEdit }: { user: UserForProvi
           {canEdit && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleSendPasswordResetEmail(user.email)} className="cursor-pointer">
-                <Mail className="mr-2 h-4 w-4" />
-                Send Password Reset Email
-              </DropdownMenuItem>
+              {user.is_onboarded ? (
+                <DropdownMenuItem onClick={() => handleSendPasswordResetEmail(user.email)} className="cursor-pointer">
+                  <Mail className="mr-2 h-4 w-4" />
+                  Send Password Reset Email
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={() => handleResendOnboardingEmail(user.id)} className="cursor-pointer">
+                  <Mail className="mr-2 h-4 w-4" />
+                  Resend Onboarding Email
+                </DropdownMenuItem>
+              )}
+
               <DropdownMenuItem onClick={() => setOpen(true)} className="cursor-pointer">
                 <Edit className="mr-2 h-4 w-4" />
                 Edit User
@@ -72,6 +80,7 @@ export default function UserTableActions({ user, canEdit }: { user: UserForProvi
           global_role: user.roles[0].role_type_id,
           send_invite: false,
         }}
+        user_id={user.id}
       />
       <DeleteUserModal open={showDeleteModal} onOpenChange={setShowDeleteModal} userEmail={user.email} userId={user.id} />
     </div>

@@ -18,6 +18,7 @@ export interface UserForProvider {
   created_at: string;
   last_sign_in_at: string | null;
   avatar: string | null;
+  is_onboarded: boolean;
   roles: Array<{
     assignment_id: string;
     role_type_id: string;
