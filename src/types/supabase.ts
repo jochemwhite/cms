@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          target_user_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          target_user_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          target_user_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
           error_message: string | null
@@ -109,7 +142,9 @@ export type Database = {
           email: string
           first_name: string | null
           id: string
+          is_onboarded: boolean
           last_name: string | null
+          updated_at: string
         }
         Insert: {
           avatar?: string | null
@@ -117,7 +152,9 @@ export type Database = {
           email: string
           first_name?: string | null
           id?: string
+          is_onboarded?: boolean
           last_name?: string | null
+          updated_at?: string
         }
         Update: {
           avatar?: string | null
@@ -125,7 +162,9 @@ export type Database = {
           email?: string
           first_name?: string | null
           id?: string
+          is_onboarded?: boolean
           last_name?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -143,6 +182,10 @@ export type Database = {
           p_role_type_id: string
         }
         Returns: boolean
+      }
+      get_all_users_with_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: Json[]
       }
       get_user_session: {
         Args: Record<PropertyKey, never>

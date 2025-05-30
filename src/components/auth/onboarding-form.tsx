@@ -18,28 +18,10 @@ import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/supabaseClient";
 import { Database } from "@/types/supabase";
 import { FileUpload } from "../ui/file-upload";
+import { OnboardingFormValues, OnboardingSchema } from "@/schemas/onboarding";
+import { UpdateUserOnboardingStatus } from "@/actions/authentication/user-management";
+import { toast } from "sonner";
 
-// Define the form schema with Zod
-const formSchema = z
-  .object({
-    firstname: z.string().min(2, {
-      message: "Fist name must be at least 2 characters.",
-    }),
-    lastname: z.string().min(2, {
-      message: "Last name must be at least 2 characters.",
-    }),
-    profileImage: z.instanceof(File).optional(),
-    password: z.string().min(8, {
-      message: "Password must be at least 8 characters.",
-    }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-type FormValues = z.infer<typeof formSchema>;
 
 interface props {
   user: Database["public"]["Tables"]["users"]["Row"];
@@ -56,45 +38,28 @@ export default function OnboardingForm({ user }: props) {
   const progress = ((step + 1) / totalSteps) * 100;
 
   // Initialize the form
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<OnboardingFormValues>({
+    resolver: zodResolver(OnboardingSchema),
     defaultValues: {
-      firstname: "",
-      lastname: "",
+      firstname: user.first_name || "",
+      lastname: user.last_name || "",
       password: "",
       confirmPassword: "",
     },
   });
 
   // Handle form submission
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (values: OnboardingFormValues) => {
     setIsLoading(true);
-
-    // upload file supabase
-    if (values.profileImage) {
-      const type = values.profileImage?.type.split("/")[1];
-      const { data, error } = await supabase.storage.from("users").upload(`/profile_images/${user.id}-profile_image.${type}`, values.profileImage);
-
-      if (error) {
-        console.log(error);
-        return;
-      }
-    }
-
-    try {
-      // Here you would typically send the data to your API
-      console.log("Form submitted:", values);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Redirect to dashboard or home page after successful onboarding
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    } finally {
+    const { success, error } = await UpdateUserOnboardingStatus(user.id, values);
+    if (!success) {
+      toast.error(error || "Something went wrong");
       setIsLoading(false);
+      return;
     }
+    setIsLoading(false);
+    toast.success("Onboarding completed successfully");
+    router.push("/dashboard");
   };
 
   // Navigate to next step

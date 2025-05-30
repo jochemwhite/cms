@@ -11,21 +11,17 @@ import { redirect, unauthorized } from "next/navigation";
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data, error } = (await supabase.rpc("get_user_session").single()) as { data: UserSession; error: PostgrestError | null };
+  
+  
   if (error || !data) {
     if (error) console.log(error);
     unauthorized();
   }
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    console.log(userError);
-
-    redirect("/");
+  if(!data.user_info.is_onboarded) {
+    return redirect("/onboarding");
   }
+
 
   return (
     <UserSessionProvider userData={data}>

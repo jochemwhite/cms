@@ -1,6 +1,6 @@
 "use client";
 
-import { DeleteUser } from "@/actions/authentication/user-management";
+import { DeleteUser, SendPasswordResetEmail } from "@/actions/authentication/user-management";
 import { AvailableRole, UserForProvider } from "@/types/custom-supabase-types";
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ interface UsersContextType {
   handleDeleteUser: (id: string) => Promise<void>;
   getUserById: (id: string) => UserForProvider | undefined;
   availableRoles: AvailableRole[];
+  handleSendPasswordResetEmail: (email: string) => Promise<void>;
 }
 
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
@@ -88,6 +89,25 @@ export function UsersProvider({ children, initialUsers, initialAvailableRoles }:
     );
   };
 
+  const handleSendPasswordResetEmail = async (email: string) => {
+    toast.promise(
+      async () => {
+        const { success, error } = await SendPasswordResetEmail(email);
+        if (!success) {
+          throw error || "Failed to send password reset email";
+        }
+        return true;
+      },
+      {
+        loading: "Sending password reset email...",
+        success: "Password reset email sent successfully",
+        error: (error) => {
+          return error;
+        },
+      }
+    );
+  };
+
   const getUserById = useCallback(
     (id: string) => {
       return users.find((user) => user.id === id);
@@ -105,7 +125,8 @@ export function UsersProvider({ children, initialUsers, initialAvailableRoles }:
     handleDeleteUser,
     getUserById,
     availableRoles,
-  };
+    handleSendPasswordResetEmail,
+    };
 
   return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;
 }

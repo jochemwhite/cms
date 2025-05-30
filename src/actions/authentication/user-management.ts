@@ -2,11 +2,20 @@
 
 import { supabaseAdmin } from "@/lib/supabase/SupabaseAdminClient";
 import { createClient } from "@/lib/supabase/supabaseServerClient";
+import { OnboardingFormValues } from "@/schemas/onboarding";
 import { checkRequiredRoles } from "@/server/auth/check-required-roles";
+import generateLink from "@/server/email/generateLink";
+import { sendEmail } from "@/server/email/send-email";
 import { ActionResponse } from "@/types/actions";
+import { render } from "@react-email/components";
 import { User } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import ResetPasswordEmail from "../../../emails/ResetPassword";
+import { Database } from "@/types/supabase";
+import { env } from "@/lib/env";
 
+// delete user
 export async function DeleteUser(user_id: string): Promise<ActionResponse<User | null>> {
   const supabase = await createClient();
   try {
@@ -14,15 +23,15 @@ export async function DeleteUser(user_id: string): Promise<ActionResponse<User |
     const { data: currentUser, error: currentUserError } = await supabase.auth.getUser();
     if (currentUserError || !currentUser) {
       return { success: false, error: "Unauthorized: User not authenticated." };
-    }   
-    
+    }
+
     // check if user is admin
     const hasPermission = await checkRequiredRoles(currentUser.user.id, ["system_admin"]);
-    
+
     if (!hasPermission) {
       return { error: "User does not have permission to delete users", success: false };
     }
-    
+
     // delete user
     const { data, error } = await supabaseAdmin.auth.admin.deleteUser(user_id);
 
@@ -30,8 +39,178 @@ export async function DeleteUser(user_id: string): Promise<ActionResponse<User |
       console.error(error);
       throw new Error(error.message);
     }
+
+    // Insert audit log
+    await supabaseAdmin.from("audit_logs").insert({
+      event_type: "admin_delete_user",
+      user_id: currentUser.user.id,
+      target_user_id: user_id,
+      ip_address: null, // Optionally, get from request headers if available
+      user_agent: null, // Optionally, get from request headers if available
+    });
+
     revalidatePath("/dashboard/admin/users", "layout");
     return { data: data.user, success: true };
+  } catch (err) {
+    console.error(err);
+    return { error: err instanceof Error ? err.message : "Unknown error", success: false };
+  }
+}
+
+// send password reset email
+export async function SendPasswordResetEmail(email: string): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+  try {
+    // get current user
+    const { data: currentUser, error: currentUserError } = await supabase.auth.getUser();
+    if (currentUserError || !currentUser) {
+      return { success: false, error: "Unauthorized: User not authenticated." };
+    }
+
+    // check if user is admin
+    const hasPermission = await checkRequiredRoles(currentUser.user.id, ["system_admin"]);
+    if (!hasPermission) {
+      return { success: false, error: "User does not have permission to send password reset emails" };
+    }
+
+    // create password reset token
+    const { data: inviteData, error: generateLinkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
+      email: email,
+    });
+    if (generateLinkError) {
+      console.error("Error generating invite link:", generateLinkError);
+      return { success: false, error: generateLinkError.message };
+    }
+    if (!inviteData) {
+      return { success: false, error: "Failed to generate password reset token" };
+    }
+    // create password reset link
+    const link = generateLink({
+      next: "/auth/update-password",
+      token: inviteData.properties.hashed_token,
+      type: "recovery",
+    });
+
+    // send email
+    const emailHtml = await render(
+      ResetPasswordEmail({
+        yourName: "Amrio",
+        resetLink: link,
+        userName: inviteData.user.email || "",
+      })
+    );
+
+    const { success, error } = await sendEmail({
+      to: email,
+      subject: "Password Reset Request",
+      text: "Password Reset Request",
+      html: emailHtml,
+    });
+
+    if (!success) {
+      return { success: false, error: error || "Failed to send password reset email" };
+    }
+
+    // Insert audit log
+    await supabaseAdmin.from("audit_logs").insert({
+      event_type: "admin_password_reset_email",
+      user_id: currentUser.user.id,
+      target_user_id: inviteData.user.id,
+      metadata: { email },
+      ip_address: null, // Optionally, get from request headers if available
+      user_agent: null, // Optionally, get from request headers if available
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error(err);
+    return { error: err instanceof Error ? err.message : "Unknown error", success: false };
+  }
+}
+
+// update user onboarding status
+export async function UpdateUserOnboardingStatus(user_id: string, formData: OnboardingFormValues): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+  try {
+    let profileImageUrl: string | undefined;
+
+    const isFileLike = (obj: any) =>
+      obj && typeof obj === "object" && typeof obj.name === "string" && typeof obj.type === "string" && typeof obj.size === "number";
+
+    if (isFileLike(formData.profileImage)) {
+      const file = formData.profileImage;
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      const maxSizeMB = 2;
+
+      if (!allowedTypes.includes(file.type)) {
+        return { success: false, error: "Only JPG, PNG, or WEBP images are allowed." };
+      }
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        return { success: false, error: `File size must be less than ${maxSizeMB}MB.` };
+      }
+
+      const type = file.type.split("/")[1];
+      const filePath = `/profile_images/${user_id}-profile_image.${type}`;
+      const { data, error } = await supabase.storage.from("users").upload(filePath, file, {
+        upsert: true,
+      });
+
+      if (error) {
+        console.error(error);
+        return { success: false, error: error.message };
+      }
+      profileImageUrl = data.path;
+    }
+
+    // Prepare update object
+    const updateObj: Database["public"]["Tables"]["users"]["Update"] = {
+      is_onboarded: true,
+      first_name: formData.firstname,
+      last_name: formData.lastname,
+    };
+    if (profileImageUrl) {
+      updateObj.avatar = `${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/users/${profileImageUrl}`;
+    }
+
+    // Update user profile
+    const { error: userUpdateError } = await supabase
+      .from("users")
+      .update(updateObj)
+      .eq("id", user_id);
+
+    if (userUpdateError) {
+      console.error(userUpdateError);
+      return { success: false, error: userUpdateError.message };
+    }
+
+    // // Update password if provided
+    if (formData.password && formData.password.length > 0) {
+      const { error: passwordUpdateError } = await supabase.auth.updateUser({
+        password: formData.password,
+      });
+
+      if (passwordUpdateError) {
+        console.error(passwordUpdateError);
+        return { success: false, error: passwordUpdateError.message };
+      }
+    }
+
+    // Insert audit log
+    await supabaseAdmin.from("audit_logs").insert({
+      event_type: "user_onboarding_completed",
+      user_id,
+      metadata: {
+        first_name: formData.firstname,
+        last_name: formData.lastname,
+        avatar: profileImageUrl || null,
+      },
+      ip_address: null,
+      user_agent: null,
+    });
+
+    revalidatePath("/dashboard", "layout");
+    return { success: true };
   } catch (err) {
     console.error(err);
     return { error: err instanceof Error ? err.message : "Unknown error", success: false };

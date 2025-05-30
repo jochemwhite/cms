@@ -12,7 +12,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendEmail(to: string, subject: string, text: string, html: string) {
+interface EmailData {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}
+
+
+export async function sendEmail({ to, subject, text, html }: EmailData): Promise<{ success: boolean, error: string | null }> {
   const mailOptions = {
     from: `Amrio CMS <${env.SMTP_FROM}>`,
     to: to,
@@ -50,4 +58,6 @@ export async function sendEmail(to: string, subject: string, text: string, html:
       message_id,
     },
   ]);
+
+  return { success: status === 'sent', error: error_message };
 }

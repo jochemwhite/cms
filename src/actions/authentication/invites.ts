@@ -66,12 +66,12 @@ export async function createUserInvite(userValues: UserFormValues): Promise<Acti
         type: "invite",
       });
     } else {
-3      // If NOT sending an invite, create user directly (no email sent by Supabase Auth)
+      3; // If NOT sending an invite, create user directly (no email sent by Supabase Auth)
       const generatedPassword = generateRandomPassword(); // Generate a temporary password
       const { data: createUserData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
         email: userValues.email,
         password: generatedPassword,
-        email_confirm: false, 
+        email_confirm: false,
       });
 
       if (createUserError) {
@@ -113,11 +113,14 @@ export async function createUserInvite(userValues: UserFormValues): Promise<Acti
             clientName: userValues.email, // Or userValues.first_name
           })
         );
-        await sendEmail(userValues.email, "Invite to Amrio CMS", "Invite to Amrio CMS", emailHtml);
+        await sendEmail({
+          to: userValues.email,
+          subject: "Invite to Amrio CMS",
+          text: "Invite to Amrio CMS",
+          html: emailHtml,
+        });
       } catch (emailError) {
         console.error("Error sending invite email:", emailError);
-        // Decide if email sending failure should fail the whole process.
-        // For now, we'll return success as user and role are created in DB.
       }
     }
 

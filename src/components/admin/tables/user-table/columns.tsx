@@ -21,6 +21,8 @@ import { ArrowUpDown, Copy, Edit, MoreHorizontal, Trash2, X } from "lucide-react
 import { useState } from "react";
 import { toast } from "sonner";
 import UserSheet from "../../sheets/user-sheet";
+import { Modal } from "@/components/ui/modal";
+import UserTableActions from "./user-table-actions";
 
 // Helper function to format dates, handles null gracefully
 const formatDate = (dateString: string | null) => {
@@ -216,6 +218,7 @@ export const columns: ColumnDef<UserForProvider>[] = [
       const user = row.original;
       const { userSession } = useUserSession();
       const { handleDeleteUser } = useUsers();
+      const [showDeleteModal, setShowDeleteModal] = useState(false);
 
       const handleDelete = () => {
         handleDeleteUser(user.id);
@@ -229,52 +232,10 @@ export const columns: ColumnDef<UserForProvider>[] = [
       };
 
       return (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => handleCopy(user.id, "User ID")} className="cursor-pointer">
-                <Copy className="mr-2 h-4 w-4" />
-                Copy User ID
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleCopy(user.email, "Email")} className="cursor-pointer">
-                <Copy className="mr-2 h-4 w-4" />
-                Copy Email
-              </DropdownMenuItem>
-              {canEdit && <DropdownMenuSeparator />}
-              {canEdit && (
-                <DropdownMenuItem onClick={() => setOpen(true)} className="cursor-pointer">
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit User
-                </DropdownMenuItem>
-              )}
-              {canEdit && (
-                <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete User
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <UserSheet
-            sheetOpen={open}
-            setSheetOpen={setOpen}
-            initialData={{
-              email: user.email,
-              first_name: user.first_name || "",
-              last_name: user.last_name || "",
-              global_role: user.roles[0].role_type_id,
-              send_invite: false,
-            }}
-          />
-        </div>
+        <UserTableActions user={user} canEdit={canEdit} />
       );
     },
   },
 ];
+
+
