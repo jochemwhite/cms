@@ -5,13 +5,15 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/supabaseServerClient";
 import { z } from "zod";
+import { User } from "@supabase/supabase-js";
+import { ActionResponse } from "@/types/actions";
 
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
 });
 
-export async function login(formData: z.infer<typeof schema>) {
+export async function login(formData: z.infer<typeof schema>): Promise<ActionResponse<{ user: User }>> {
   const supabase = await createClient();
 
   const result = schema.safeParse(formData);
@@ -19,18 +21,15 @@ export async function login(formData: z.infer<typeof schema>) {
     redirect("/error");
   }
 
-  const { error } = await supabase.auth.signInWithPassword(result.data);
+  const { error, data } = await supabase.auth.signInWithPassword(result.data);
 
   if (error) {
     console.log(error);
-    return;
+    return { success: false, error: error.message };
   }
 
-  revalidatePath("/", "layout");
-  redirect("/dashboard");
-}
-
-
+  return { success: true,  };
+};
 
 export async function logout() {
   const supabase = await createClient();
@@ -42,29 +41,39 @@ export async function logout() {
 
 
 
-export async function signup(formData: z.infer<typeof schema>) {
-  const supabase = await createClient();
+export async function verifyMfaAction(code: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient(); // server-side supabase client
 
-  // Validate the form data
-  const result = schema.safeParse(formData);
-  if (!result.success) {
-    // Use formErrors directly, since it's a string array
-    const { formErrors } = result.error.flatten();
-    return { error: formErrors.join(", ") };
+  const factors = await supabase.auth.mfa.listFactors();
+  if (factors.error) {
+    return { success: false, error: factors.error.message };
   }
 
-  // Attempt to sign up the user with Supabase
-  const { error, data } = await supabase.auth.signUp(result.data);
-
-  if (error) {
-    // Return the error message for display
-    console.error(error);
-    return { error: error.message };
+  const totpFactor = factors.data.totp[0];
+  if (!totpFactor) {
+    return { success: false, error: 'No TOTP factors found!' };
   }
 
-  // Optionally revalidate your cache if needed
-  revalidatePath("/");
+  const factorId = totpFactor.id;
+  const challenge = await supabase.auth.mfa.challenge({ factorId });
 
-  // Return the successful response
-  return { data };
+  if (challenge.error) {
+    return { success: false, error: challenge.error.message };
+  }
+
+  const challengeId = challenge.data.id;
+
+  const verify = await supabase.auth.mfa.verify({
+    factorId,
+    challengeId,
+    code,
+  });
+
+  if (verify.error) {
+    return { success: false, error: verify.error.message };
+  }
+
+  revalidatePath("/dashboard", "layout");
+
+  return { success: true };
 }

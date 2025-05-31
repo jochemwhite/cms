@@ -7,7 +7,7 @@ import { unauthorized } from "next/navigation";
 import React, { use } from "react";
 
 export const metadata = {
-  title: "Account Settings | Hilversum Media",
+  title: "Account Settings | Amrio",
   description: "Manage your account settings, profile information, and security preferences",
 };
 
@@ -41,7 +41,7 @@ export default async function page() {
 
         <div className="grid gap-6 md:grid-cols-2 md:gap-8">
           <PasswordSection staggerIndex={2} />
-          {/* <MultifactorAuthentication  /> */}
+          <MultifactorAuthentication  />
         </div>
       </div>
     </div>

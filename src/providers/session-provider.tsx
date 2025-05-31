@@ -1,6 +1,8 @@
 "use client";
 
 import { DeleteUser } from "@/actions/authentication/user-management";
+import AuthMFA from "@/components/auth/auth-mfa";
+import MultifactorAuthentication from "@/components/settings/multifactor-authentication";
 import { createClient } from "@/lib/supabase/supabaseClient";
 import { UserSession } from "@/types/custom-supabase-types";
 import { Database } from "@/types/supabase";
@@ -26,7 +28,24 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
   const [userSession, setUserSession] = useState<UserSession | null>(userData);
   const [loadingSession, setLoadingSession] = useState<boolean>(!userData);
   const [sessionError, setSessionError] = useState<any>(null);
+  const [showMFAScreen, setShowMFAScreen] = useState(false);
   const supabase = createClient();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (error) {
+          throw error;
+        }
+        if (data.nextLevel === "aal2" && data.nextLevel !== data.currentLevel) {
+          setShowMFAScreen(true);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, [userSession]);
 
   const getSupabaseUserSession = useCallback(async (): Promise<UserSession | null> => {
     setLoadingSession(true);
@@ -70,14 +89,11 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
     [getSupabaseUserSession, setUserSession, supabase]
   );
 
-
   useEffect(() => {
     if (userData) {
       setUserSession(userData);
     }
   }, [userData]);
-
-
 
   useEffect(() => {
     // 1. Auth state changes
@@ -133,7 +149,7 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
     sessionError,
   };
 
-  return <UserSessionContext.Provider value={value}>{children}</UserSessionContext.Provider>;
+  return <UserSessionContext.Provider value={value}>{showMFAScreen ? <AuthMFA onSuccess={() => setShowMFAScreen(false)} /> : children}</UserSessionContext.Provider>;
 };
 
 export const useUserSession = (): UserSessionContextValue => {

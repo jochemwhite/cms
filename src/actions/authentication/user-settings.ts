@@ -89,3 +89,54 @@ export async function updateUserPassword( currentPassword: string, newPassword: 
 
   return { success: true };
 }
+
+
+
+export async function enroll2FA(): Promise<ActionResponse<{ factorId: string; qr: string; secret: string }>> {
+  const supabase = await createClient();
+  // Generate a UUID for the friendly name (server-side)
+  function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  const friendlyName = `Authenticator ${uuidv4()}`;
+  const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName });
+  if (error) {
+    console.log("error enroll2FA", error);
+    return { success: false, error: error.message };
+  }
+  return {
+    success: true,
+    data: {
+      factorId: data.id,
+      qr: data.totp.qr_code,
+      secret: data.totp.secret,
+    },
+  };
+}
+
+export async function challenge2FA(factorId: string): Promise<ActionResponse<{ challengeId: string }>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.mfa.challenge({ factorId });
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true, data: { challengeId: data.id } };
+}
+
+export async function verify2FA({ factorId, challengeId, code }: { factorId: string; challengeId: string; code: string }): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.mfa.verify({
+    factorId,
+    challengeId,
+    code,
+  });
+  if (error) {
+    console.log("error verify2FA", error);
+    return { success: false, error: error.message };
+  }
+  await supabase.auth.refreshSession();
+  return { success: true };
+}

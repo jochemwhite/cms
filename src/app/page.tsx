@@ -4,13 +4,13 @@ import { SparklesCore } from "@/components/ui/sparkles";
 import { createClient } from "@/lib/supabase/supabaseServerClient";
 import { redirect } from "next/navigation";
 
-export default async function Home() {
- 
+export default async function Home() { 
   const supabase = await createClient()
 
   const { data, error } = await supabase.auth.getUser()
 
   if (data?.user) {
+    console.log("data", data);
     redirect("/dashboard")
   }
 
