@@ -8,6 +8,7 @@ import { UserSession } from "@/types/custom-supabase-types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { redirect, unauthorized } from "next/navigation";
 
+
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data, error } = (await supabase.rpc("get_user_session").single()) as { data: UserSession; error: PostgrestError | null };
