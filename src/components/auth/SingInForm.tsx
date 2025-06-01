@@ -22,10 +22,6 @@ const formSchema = z.object({
 });
 
 export default function SingInForm() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [showMFAScreen, setShowMFAScreen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
