@@ -1,6 +1,5 @@
 "use client";
 import { login } from "@/app/(auth)/_actions";
-import { createClient } from "@/lib/supabase/supabaseClient";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { User } from "@supabase/supabase-js";
@@ -12,7 +11,6 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import AuthMFA from "./auth-mfa";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -27,7 +25,6 @@ export default function SingInForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showMFAScreen, setShowMFAScreen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const supabase = createClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

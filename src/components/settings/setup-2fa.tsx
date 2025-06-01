@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { Modal } from "../ui/modal";
 import { Input } from "../ui/input";
-import { createClient } from "@/lib/supabase/supabaseClient";
+import supabase from "@/lib/supabase/supabaseClient";
 
 export default function Setup2fa() {
   const [open, setOpen] = useState(false);
@@ -50,7 +50,6 @@ const Setup = ({ closeModal }: Props) => {
     const enrollAndChallenge = async () => {
       setError("");
       try {
-        const supabase = createClient();
         const friendlyName = `Authenticator ${uuidv4()}`;
         const enrollResult = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName });
         if (enrollResult.error || !enrollResult.data) {
@@ -74,7 +73,6 @@ const Setup = ({ closeModal }: Props) => {
     setError("");
     setIsPending(true);
     try {
-      const supabase = createClient();
       // Call challenge right before verify
       const challengeResult = await supabase.auth.mfa.challenge({ factorId });
       if (challengeResult.error || !challengeResult.data) {

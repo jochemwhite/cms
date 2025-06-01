@@ -1,16 +1,13 @@
 "use client";
 
-import { DeleteUser } from "@/actions/authentication/user-management";
 import AuthMFA from "@/components/auth/auth-mfa";
-import MultifactorAuthentication from "@/components/settings/multifactor-authentication";
 import { Spinner } from "@/components/ui/spinner";
-import { createClient } from "@/lib/supabase/supabaseClient";
+import supabase from "@/lib/supabase/supabaseClient";
 import { UserSession } from "@/types/custom-supabase-types";
 import { Database } from "@/types/supabase";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import { redirect } from "next/navigation";
-import React, { createContext, ReactNode, useContext, useEffect, useState, useCallback } from "react";
-import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 
 interface UserSessionContextValue {
   userSession: UserSession | null;
@@ -27,10 +24,11 @@ interface UserSessionProviderProps {
 
 export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ children, userData }) => {
   const [userSession, setUserSession] = useState<UserSession | null>(userData);
-  const [loadingSession, setLoadingSession] = useState<boolean>(true);
+  const [loadingSession, setLoadingSession] = useState<boolean>(false);
   const [sessionError, setSessionError] = useState<any>(null);
   const [showMFAScreen, setShowMFAScreen] = useState(false);
-  const supabase = createClient();
+  const router = useRouter();
+
 
   useEffect(() => {
     (async () => {
@@ -42,11 +40,10 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
         if (data.nextLevel === "aal2" && data.nextLevel !== data.currentLevel) {
           setShowMFAScreen(true);
         }
-        setLoadingSession(false);
       } catch (error) {
-        setLoadingSession(false);
         console.error(error);
       }
+      setLoadingSession(false);
     })();
   }, [userSession]);
 
@@ -72,18 +69,14 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
 
   const handleRoleChange = useCallback(
     async (payload: RealtimePostgresChangesPayload<Database["public"]["Tables"]["user_global_roles"]["Row"]>) => {
-      // Get the current authenticated user's ID
       const {
         data: { user },
       } = await supabase.auth.getUser();
       const currentUserId = user?.id || null;
 
-      // The payload contains the user_id of the row that changed
       const changedUserId = (payload.new as any)?.user_id || (payload.old as any)?.user_id;
 
-      // Only re-fetch if the change is relevant to the current user's global roles
       if (currentUserId && changedUserId === currentUserId) {
-        // Re-fetch the complete session from the server using the RPC
         const updatedSession = await getSupabaseUserSession();
         setUserSession(updatedSession);
       } else {
@@ -99,24 +92,18 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
   }, [userData]);
 
   useEffect(() => {
-    // 1. Auth state changes
     const {
       data: { subscription: authSubscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (_event === "SIGNED_IN" && session) {
-        // When signed in, fetch the full session data using your RPC
         const sessionData = await getSupabaseUserSession();
         setUserSession(sessionData);
       } else if (_event === "SIGNED_OUT") {
         setUserSession(null);
-        // If you always want to redirect on sign out, uncomment this:
-        redirect("/");
+        router.push("/");
       }
     });
 
-    // 2. Realtime subscription for user_global_roles
-    // Only subscribe if a user is potentially logged in (i.e., userSession isn't null on mount)
-    // The filter will ensure we only get relevant updates.
     const currentUserId = userSession?.user_info?.id;
     let rolesChannel: ReturnType<typeof supabase.channel> | null = null;
 
@@ -143,7 +130,7 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
   }, [supabase, userSession?.user_info?.id, getSupabaseUserSession, handleRoleChange]);
 
   if (!userSession && !loadingSession && !sessionError) {
-    redirect("/");
+    router.push("/");
   }
 
   const value: UserSessionContextValue = {
@@ -158,14 +145,12 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
         <div className="flex justify-center items-center h-screen">
           <Spinner size={100} />
         </div>
+      ) : showMFAScreen ? (
+        <div className="flex justify-center items-center h-screen">
+          <AuthMFA onSuccess={() => setShowMFAScreen(false)} />
+        </div>
       ) : (
-        showMFAScreen ? (
-          <div className="flex justify-center items-center h-screen">
-            <AuthMFA onSuccess={() => setShowMFAScreen(false)} />
-          </div>
-        ) : (
-          children
-        )
+        children
       )}
     </UserSessionContext.Provider>
   );

@@ -1,10 +1,10 @@
 "use client";
 
+import supabase from "@/lib/supabase/supabaseClient";
 import { ShieldCheck } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { createClient } from "@/lib/supabase/supabaseClient";
 import Setup2fa from "./setup-2fa";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 
 export default function MultifactorAuthentication() {
   const [isMfaVerified, setIsMfaVerified] = useState(false);
@@ -13,7 +13,6 @@ export default function MultifactorAuthentication() {
   useEffect(() => {
     const checkMfaStatus = async () => {
       try {
-        const supabase = createClient();
         const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
 
