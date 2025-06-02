@@ -188,11 +188,13 @@ export type Database = {
         Returns: Json[]
       }
       get_user_session: {
-        Args: Record<PropertyKey, never>
+        Args: Record<PropertyKey, never> | { p_uid: string }
         Returns: Json
       }
       has_global_role: {
-        Args: { role_name_input: string }
+        Args:
+          | { role_name_input: string }
+          | { uid: string; role_name_input: string }
         Returns: boolean
       }
       revoke_global_role: {

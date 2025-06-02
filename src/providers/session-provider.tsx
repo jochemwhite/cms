@@ -2,14 +2,14 @@
 
 import AuthMFA from "@/components/auth/auth-mfa";
 import { Spinner } from "@/components/ui/spinner";
-import supabase from "@/lib/supabase/supabaseClient";
+import { createClient } from "@/lib/supabase/supabaseClient";
 import { UserSession } from "@/types/custom-supabase-types";
 import { Database } from "@/types/supabase";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 
-interface UserSessionContextValue {
+interface UserSessionContextValue { 
   userSession: UserSession | null;
   loadingSession: boolean;
   sessionError: any;
@@ -28,10 +28,11 @@ export const UserSessionProvider: React.FC<UserSessionProviderProps> = ({ childr
   const [sessionError, setSessionError] = useState<any>(null);
   const [showMFAScreen, setShowMFAScreen] = useState(false);
   const router = useRouter();
-
+  const supabase = createClient();
 
   useEffect(() => {
     (async () => {
+      setLoadingSession(true);
       try {
         const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         if (error) {

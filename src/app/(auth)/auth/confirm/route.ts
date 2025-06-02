@@ -3,6 +3,7 @@ import { type NextRequest } from "next/server";
 
 import { createClient } from "@/lib/supabase/supabaseServerClient";
 import { redirect } from "next/navigation";
+import { error } from "console";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -20,13 +21,11 @@ export async function GET(request: NextRequest) {
         redirectTo: next,
       },
     });
-    if (!error) {
-      redirect(next);
+    if (error) {
+      console.log(error);
+      return redirect("/error");
     }
+    redirect(next);
   }
 
-  console.log("error");
-
-  // redirect the user to an error page with some instructions
-  redirect("/error");
 }

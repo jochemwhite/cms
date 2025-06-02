@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/supabaseServerClient";
 import { z } from "zod";
-import { User } from "@supabase/supabase-js";
+import { Session, User } from "@supabase/supabase-js";
 import { ActionResponse } from "@/types/actions";
 
 const schema = z.object({
@@ -13,7 +13,7 @@ const schema = z.object({
   password: z.string().min(6),
 });
 
-export async function login(formData: z.infer<typeof schema>): Promise<ActionResponse<{ user: User }>> {
+export async function login(formData: z.infer<typeof schema>): Promise<ActionResponse<{ session: Session }>> {
   const supabase = await createClient();
 
   const result = schema.safeParse(formData);
@@ -28,18 +28,19 @@ export async function login(formData: z.infer<typeof schema>): Promise<ActionRes
     return { success: false, error: error.message };
   }
 
-  return { success: true,  };
-};
+  const {
+    data: { session },
+  } = await supabase.auth.refreshSession();
+  return { success: true };
+}
 
 export async function logout() {
   const supabase = await createClient();
-  await supabase.auth.signOut();  
+  await supabase.auth.signOut();
   revalidatePath("/");
 
   return redirect("/");
 }
-
-
 
 export async function verifyMfaAction(code: string): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient(); // server-side supabase client
@@ -51,7 +52,7 @@ export async function verifyMfaAction(code: string): Promise<{ success: boolean;
 
   const totpFactor = factors.data.totp[0];
   if (!totpFactor) {
-    return { success: false, error: 'No TOTP factors found!' };
+    return { success: false, error: "No TOTP factors found!" };
   }
 
   const factorId = totpFactor.id;

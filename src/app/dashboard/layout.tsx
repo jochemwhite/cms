@@ -8,24 +8,23 @@ import { UserSession } from "@/types/custom-supabase-types";
 import { PostgrestError } from "@supabase/supabase-js";
 import { redirect, unauthorized } from "next/navigation";
 
-
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
-  const { data, error } = (await supabase.rpc("get_user_session").single()) as { data: UserSession; error: PostgrestError | null };
-
-  if (error || !data) {
-    if (error) console.log(error);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
     return unauthorized();
   }
-
-  if (!data.user_info.is_onboarded) {
+  const { data, error } = (await supabase.rpc('get_user_session', { p_uid: user.id })) as unknown as { data: UserSession; error: PostgrestError | null };    
+  if (error) {
+    console.log(error);
+    return unauthorized();
+  }
+  if (!data?.user_info?.is_onboarded) {
     return redirect("/onboarding");
   }
 
-
-
   return (
-    <UserSessionProvider userData={data}>
+    <UserSessionProvider userData={data as UserSession}>
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>

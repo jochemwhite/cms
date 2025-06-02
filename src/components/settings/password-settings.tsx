@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
-import supabase from "@/lib/supabase/supabaseClient";
+import { createClient } from "@/lib/supabase/supabaseClient";
 import { useUserSession } from "@/providers/session-provider";
 import { updateUserPassword } from "@/actions/authentication/user-settings";
 // Import your Supabase client instance (adjust the import path as needed)
@@ -43,7 +43,7 @@ export const PasswordSection: React.FC<PasswordSectionProps> = ({ staggerIndex =
   const [showNewPassword, setShowNewPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const { userSession } = useUserSession();
-
+  const supabase = createClient();
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
     defaultValues: {

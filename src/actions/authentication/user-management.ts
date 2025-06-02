@@ -255,7 +255,7 @@ export async function ResendOnboardingEmail(user_id: string): Promise<ActionResp
       return { success: false, error: generateLinkError.message };
     }
     const inviteLink = generateLink({
-      next: "/onboarding", // Or your desired onboarding path
+      next: "/onboarding", 
       token: inviteData.properties.hashed_token,
       type: "magiclink",
     });

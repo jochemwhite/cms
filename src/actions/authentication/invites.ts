@@ -2,15 +2,14 @@
 
 import { supabaseAdmin } from "@/lib/supabase/SupabaseAdminClient"; // Assumed to use SERVICE_ROLE_KEY
 import { createClient } from "@/lib/supabase/supabaseServerClient"; // Assumed to use authenticated user's JWT
+import { UserFormValues } from "@/schemas/user-form";
 import { checkRequiredRoles } from "@/server/auth/check-required-roles";
 import generateLink from "@/server/email/generateLink";
+import { sendEmail } from "@/server/email/send-email";
 import { ActionResponse } from "@/types/actions";
 import { render } from "@react-email/components";
-import InviteUserEmail from "../../../emails/InviteUserEmail";
-import { sendEmail } from "@/server/email/send-email";
-import { generateRandomPassword } from "@/server/utils/generateRandomPassword";
 import { revalidatePath } from "next/cache";
-import { UserFormValues } from "@/schemas/user-form";
+import InviteUserEmail from "../../../emails/InviteUserEmail";
 
 export async function createUserInvite(userValues: UserFormValues): Promise<ActionResponse<void>> {
   const supabase = await createClient(); // Client for user-level operations (respects RLS)
@@ -45,11 +44,36 @@ export async function createUserInvite(userValues: UserFormValues): Promise<Acti
       return { success: false, error: "User with this email already exists." };
     }
 
-    // 3. Create user in auth.users (conditional based on send_invite)
-    let inviteLink: string | null = null;
+    // create user in auth.users
+    const { data: authUser, error: authUserError } = await supabaseAdmin.auth.admin.createUser({
+      email: userValues.email,
+    });
 
+    if (authUserError) {
+      console.error("Error creating user in auth.users:", authUserError);
+      return { success: false, error: "Failed to create user in auth.users." };
+    }
+
+    // call the rpc to create the user profile and assign the role
+    const { error: rpcError } = await supabase.rpc("create_user_profile_and_assign_role", {
+      p_user_id: authUser.user.id,
+      p_email: userValues.email,
+      p_first_name: userValues.first_name,
+      p_last_name: userValues.last_name,
+      p_role_type_id: userValues.global_role,
+    });
+
+    if (rpcError) {
+      await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+      return { success: false, error: `Failed to set up user profile and role: ${rpcError.message}` };
+    }
+
+    // set userId
+    newUserId = authUser.user.id;
+
+    // send invite email
     if (userValues.send_invite) {
-      // If sending an invite, use generateLink which creates user and sends email
+      // generate invite link
       const { data: inviteData, error: generateLinkError } = await supabaseAdmin.auth.admin.generateLink({
         type: "magiclink",
         email: userValues.email,
@@ -59,68 +83,33 @@ export async function createUserInvite(userValues: UserFormValues): Promise<Acti
         console.error("Error generating invite link:", generateLinkError);
         return { success: false, error: generateLinkError.message };
       }
-      newUserId = inviteData.user.id;
-      inviteLink = generateLink({
-        next: "/onboarding", // Or your desired onboarding path
+
+      const inviteLink = generateLink({
+        next: "/onboarding",
         token: inviteData.properties.hashed_token,
         type: "magiclink",
       });
-    } else { 
-      const generatedPassword = generateRandomPassword(); // Generate a temporary password
-      const { data: createUserData, error: createUserError } = await supabaseAdmin.auth.admin.createUser({
-        email: userValues.email,
-        password: generatedPassword,
-        email_confirm: false,
-      });
 
-      if (createUserError) {
-        console.error("Error creating user without invite:", createUserError);
-        return { success: false, error: createUserError.message };
-      }
-      newUserId = createUserData.user.id;
-      // Note: In this case, you'll need to securely store/provide the generatedPassword
-      // to the user through another mechanism (e.g., an admin UI, or a separate password reset flow).
-    }
+      // create email html
+      const emailHtml = await render(
+        InviteUserEmail({
+          yourName: "Amrio", // Replace with dynamic sender name if needed
+          setupLink: inviteLink,
+          clientName: userValues.email, // Or userValues.first_name
+        })
+      );
 
-    // Ensure newUserId is set before proceeding
-    if (!newUserId) {
-      return { success: false, error: "Failed to obtain new user ID after creation." };
-    }
-
-    // 4. Call the combined RPC function to create the profile and assign the role
-    // This RPC handles inserting/updating public.users and inserting into user_global_roles.
-    const { error: rpcError } = await supabase.rpc("create_user_profile_and_assign_role", {
-      p_user_id: newUserId,
-      p_email: userValues.email,
-      p_first_name: userValues.first_name,
-      p_last_name: userValues.last_name,
-      p_role_type_id: userValues.global_role, // Pass the UUID of the role type
-    });
-
-    if (rpcError) {
-      await supabaseAdmin.auth.admin.deleteUser(newUserId);
-      return { success: false, error: `Failed to set up user profile and role: ${rpcError.message}` };
-    }
-
-    // 5. Send invite email if requested (only if inviteLink was generated)
-    if (userValues.send_invite && inviteLink) {
+      // send email to user
       try {
-        const emailHtml = await render(
-          InviteUserEmail({
-            yourName: "Amrio", // Replace with dynamic sender name if needed
-            setupLink: inviteLink,
-            clientName: userValues.email, // Or userValues.first_name
-          })
-        );
         await sendEmail({
           to: userValues.email,
           subject: "Invite to Amrio CMS",
           text: "Invite to Amrio CMS",
           html: emailHtml,
         });
-      } catch (emailError) {
-        console.error("Error sending invite email:", emailError);
-        throw emailError;
+      } catch (error) {
+        console.error("Error sending invite email:", error);
+        return { success: false, error: "Failed to send invite email." };
       }
     }
 

@@ -1,7 +1,5 @@
 import OnboardingForm from "@/components/auth/onboarding-form";
 import { createClient } from "@/lib/supabase/supabaseServerClient";
-import { UserSession } from "@/types/custom-supabase-types";
-import { PostgrestError } from "@supabase/supabase-js";
 import type { Metadata } from "next";
 import { redirect, unauthorized, } from "next/navigation";
 
@@ -23,11 +21,19 @@ export default async function OnboardingPage() {
   const { data: userData, error: userError } = await supabase.from("users").select("*").eq("id", data.user.id).single();
 
   if (userError || !userData) {
-    console.log(userError);
+    if (userError) {
+      console.log("user error");
+      console.log(userError);
+      return <div>Error</div>;
+    }
+    if (!userData) {
+      console.log("user not found");
+    }
     return <div>Error</div>;
   }
 
   if (userData.is_onboarded) {
+    console.log("user is already onboarded");
     return redirect("/dashboard");
   }
 

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/supabaseServerClient";
 import { UserFormValues } from "@/schemas/user-form";
 import { uploadProfileImage } from "@/server/utils/upload-profile-image";
 import { ActionResponse } from "@/types/actions";
+import { Session } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 
 export async function updateUser(formData: Partial<UserFormValues>): Promise<ActionResponse<void>> {
@@ -128,6 +129,10 @@ export async function challenge2FA(factorId: string): Promise<ActionResponse<{ c
 
 export async function verify2FA({ factorId, challengeId, code }: { factorId: string; challengeId: string; code: string }): Promise<ActionResponse<void>> {
   const supabase = await createClient();
+  const { data: currentUser, error: currentUserError } = await supabase.auth.getUser();
+  if (currentUserError || !currentUser) {
+    return { success: false, error: "Unauthorized: User not authenticated." };
+  }
   const { data, error } = await supabase.auth.mfa.verify({
     factorId,
     challengeId,
@@ -137,6 +142,42 @@ export async function verify2FA({ factorId, challengeId, code }: { factorId: str
     console.log("error verify2FA", error);
     return { success: false, error: error.message };
   }
+
+  // insert audit log
+  await supabaseAdmin.from("audit_logs").insert({
+    event_type: "verify_2fa",
+    user_id: currentUser.user.id,
+    target_user_id: currentUser.user.id,
+    metadata: { factorId, challengeId, code },
+    ip_address: null,
+    user_agent: null,
+  });
   await supabase.auth.refreshSession();
   return { success: true };
+}
+
+
+export async function remove2FA(): Promise<ActionResponse<Session>> {
+  const supabase = await createClient();
+  const { data: currentUser, error: currentUserError } = await supabase.auth.getUser();
+  if (currentUserError || !currentUser) {
+    return { success: false, error: "Unauthorized: User not authenticated." };
+  }
+  const { data: factors } = await supabase.auth.mfa.listFactors();
+  if (factors?.totp) {
+    const { error } = await supabase.auth.mfa.unenroll({ factorId: factors.totp[0].id });
+  }
+  const { data: { session } } = await supabase.auth.refreshSession();
+  if (!session) {
+    return { success: false, error: "Failed to refresh session" };
+  }
+  // insert audit log
+  await supabaseAdmin.from("audit_logs").insert({
+    event_type: "remove_2fa",
+    user_id: currentUser.user.id,
+    target_user_id: currentUser.user.id,
+    ip_address: null, 
+    user_agent: null,
+  });
+  return { success: true, data: session };
 }

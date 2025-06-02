@@ -4,9 +4,15 @@ import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { Modal } from "../ui/modal";
 import { Input } from "../ui/input";
-import supabase from "@/lib/supabase/supabaseClient";
+import { createClient } from "@/lib/supabase/supabaseClient";
+import QRCode from "qrcode"; // add at the top
 
-export default function Setup2fa() {
+
+interface Props {
+  onSuccess: () => void;
+}
+
+export default function Setup2fa({ onSuccess }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -18,17 +24,18 @@ export default function Setup2fa() {
         title="Enroll MFA"
         description="Protect your account with two-factor authentication"
       >
-        <Setup closeModal={() => setOpen(false)} />
+        <Setup closeModal={() => setOpen(false)} onSuccess={onSuccess}  />
       </Modal>
     </>
   );
 }
 
-interface Props {
+interface SetupProps {
   closeModal: () => void;
+  onSuccess: () => void;
 }
 
-const Setup = ({ closeModal }: Props) => {
+const Setup = ({ closeModal, onSuccess }: SetupProps) => {
   const [factorId, setFactorId] = useState<string>("");
   const [qr, setQR] = useState<string>("");
   const [secret, setSecret] = useState<string>("");
@@ -36,6 +43,7 @@ const Setup = ({ closeModal }: Props) => {
   const [error, setError] = useState<string>("");
   const [isPending, setIsPending] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
+  const supabase = createClient();
 
   // Helper to generate a UUID (client-side)
   function uuidv4() {
@@ -48,9 +56,8 @@ const Setup = ({ closeModal }: Props) => {
   // Automatically enroll MFA when component mounts (client-side)
   React.useEffect(() => {
     const enrollAndChallenge = async () => {
-      setError("");
       try {
-        const friendlyName = `Authenticator ${uuidv4()}`;
+        const friendlyName = `Amrio CMS 2FA`;
         const enrollResult = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName });
         if (enrollResult.error || !enrollResult.data) {
           setError(enrollResult.error?.message || "Enrollment failed");
@@ -58,7 +65,8 @@ const Setup = ({ closeModal }: Props) => {
         }
         const { id: factorId, totp } = enrollResult.data;
         setFactorId(factorId);
-        setQR(totp.qr_code);
+        const qrCode = await QRCode.toDataURL(totp.uri);
+        setQR(qrCode);
         setSecret(totp.secret);
         setEnrolled(true);
       } catch (err: any) {
@@ -93,6 +101,7 @@ const Setup = ({ closeModal }: Props) => {
         setIsPending(false);
         return;
       }
+      onSuccess();
       closeModal();
     } catch (err: any) {
       setError(err.message);

@@ -3,15 +3,15 @@
 import { updateUserProfileImage } from "@/actions/authentication/user-settings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import supabase from "@/lib/supabase/supabaseClient";
+import { createClient } from "@/lib/supabase/supabaseClient";
 import { cn } from "@/lib/utils";
 import { Database } from "@/types/supabase";
 import { Camera } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 
-interface ImageSectionProps {
-  user: Database["public"]["Tables"]["users"]["Row"];
+  interface ImageSectionProps {
+    user: Database["public"]["Tables"]["users"]["Row"];
   staggerIndex?: number;
 }
 
@@ -20,7 +20,7 @@ export const ImageSection: React.FC<ImageSectionProps> = ({ user, staggerIndex =
   const [isLoading, setIsLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const supabase = createClient();
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/supabaseClient";
 import { verifyMfaAction } from "@/app/(auth)/_actions";
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
