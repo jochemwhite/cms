@@ -1,5 +1,5 @@
 "use client";
-import { AudioWaveform, BookOpen, Bot, Building2, Cctv, Command, GalleryVerticalEnd, Settings, Settings2, SquareTerminal, User } from "lucide-react";
+import { AudioWaveform, BookOpen, Bot, Building2, Cctv, Command, GalleryVerticalEnd, Settings, SquareTerminal, User } from "lucide-react";
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar";
 import { useUserSession } from "@/providers/session-provider";
@@ -7,7 +7,6 @@ import { NavAdmin } from "./nav/nav-admin";
 import { NavMain } from "./nav/nav-main";
 import { NavProjects } from "./nav/nav-projects";
 import { NavUser } from "./nav/nav-user";
-import { TeamSwitcher } from "./nav/team-switcher";
 
 
 const data = {

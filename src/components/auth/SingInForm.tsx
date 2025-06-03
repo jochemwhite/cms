@@ -11,6 +11,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import Link from "next/link";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -98,6 +99,10 @@ export default function SingInForm() {
             Sign in &rarr;
             <BottomGradient />
           </button>
+
+          <div className="flex flex-col space-y-4 text-sm text-neutral-500 dark:text-neutral-400 mt-4">
+            <Link href="/forgot-password">Forgot password?</Link>
+          </div>
 
           <div className="bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent my-8 h-[1px] w-full" />
 

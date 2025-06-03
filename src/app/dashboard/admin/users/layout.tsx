@@ -15,6 +15,7 @@ interface UserRawData {
   created_at: string;
   last_sign_in_at: string | null; // This assumes it's a column on public.users, or it will be null
   avatar: string | null;
+  is_onboarded: boolean;
   // This property name comes from the foreign key relationship in your Supabase schema
   user_global_roles: Array<{
     id: string; // This is the actual ID of the assignment in user_global_roles
@@ -32,7 +33,7 @@ export default async function UsersLayout({ children }: { children: React.ReactN
 
   const { data: currentUser } = await supabase.auth.getUser();
   if (!currentUser || !currentUser.user?.id) {
-    return redirect("/auth/login");
+    return redirect("/");
   }
 
   const isSystemAdmin = await checkRequiredRoles(currentUser.user?.id, ["system_admin"]);
@@ -90,10 +91,11 @@ export default async function UsersLayout({ children }: { children: React.ReactN
       avatar: user.avatar,
       roles: user.user_global_roles.map((assignment) => ({
         assignment_id: assignment.id,
-        role_type_id: assignment.global_role_types?.id || "", // Handle potential null if role_type is missing
+        role_type_id: assignment.global_role_types?.id || "", 
         role_name: assignment.global_role_types?.role_name || "Unknown",
         role_description: assignment.global_role_types?.description || "",
       })),
+      is_onboarded: user.is_onboarded ?? false,
     };
   });
 

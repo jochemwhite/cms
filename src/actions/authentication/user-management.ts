@@ -290,8 +290,6 @@ export async function ResendOnboardingEmail(user_id: string): Promise<ActionResp
 }
 
 // update user onboarding status
-
-
 export async function UpdateUserOnboardingStatus(user_id: string, formData: OnboardingFormValues): Promise<ActionResponse<void>> {
   const supabase = await createClient();
   try {
@@ -352,6 +350,120 @@ export async function UpdateUserOnboardingStatus(user_id: string, formData: Onbo
     });
 
     revalidatePath("/dashboard", "layout");
+    return { success: true };
+  } catch (err) {
+    console.error(err);
+    return { error: err instanceof Error ? err.message : "Unknown error", success: false };
+  }
+}
+
+// forgot password
+export async function ForgotPassword(email: string): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+  try {
+    // check if the user exists
+    const { data: user, error: userError } = await supabaseAdmin.from("users").select("*").eq("email", email).single();
+    if (userError) {
+      if (userError.code === "PGRST116") {
+        // add to audit log
+        await supabaseAdmin.from("audit_logs").insert({
+          event_type: "user_forgot_password",
+          user_id: null,
+          metadata: { email },
+          ip_address: null,
+          user_agent: null,
+        });
+        return { success: true };
+      }
+      return { success: false, error: userError.message };
+    }
+
+    // generate password reset link
+    const { data: inviteData, error: generateLinkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
+      email: email,
+    });
+
+    if (generateLinkError) {
+      console.error("Error generating password reset link:", generateLinkError);
+      return { success: false, error: generateLinkError.message };
+    }
+
+    const link = generateLink({
+      next: "/password-reset",
+      token: inviteData.properties.hashed_token,
+      type: "recovery",
+    });
+
+    // send email
+    const emailHtml = await render(
+      ResetPasswordEmail({
+        yourName: "Amrio",
+        resetLink: link,
+        userName: user.email,
+      })
+    );
+    
+    const { success, error } = await sendEmail({
+      to: email,
+      subject: "Password Reset Request",
+      text: "Password Reset Request",
+      html: emailHtml,
+    });
+
+
+
+    if (!success) {
+      return { success: false, error: error || "Failed to send password reset email" };
+    }
+
+    // insert audit log
+    await supabaseAdmin.from("audit_logs").insert({
+      event_type: "user_forgot_password",
+      user_id: user.id,
+      metadata: { email },
+    });
+
+    // logout user
+    await supabase.auth.signOut();
+
+    return { success: true };
+  } catch (err) {
+    console.error(err);
+    return { error: err instanceof Error ? err.message : "Unknown error", success: false };
+  }
+}
+
+// reset password
+export async function ResetPassword(password: string): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+  try {
+    const { data: user, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.error(userError);
+      return { success: false, error: userError.message };
+    }
+
+    const { error: passwordUpdateError } = await supabase.auth.updateUser({
+      password: password,
+    });
+
+    if (passwordUpdateError) {
+      console.error(passwordUpdateError);
+      return { success: false, error: passwordUpdateError.message };
+    }
+
+
+    // logout user
+    await supabase.auth.signOut();
+
+    // add to audit log
+    await supabaseAdmin.from("audit_logs").insert({
+      event_type: "user_password_reset",
+      user_id: user.user?.id,
+      metadata: { password },
+    });
+
     return { success: true };
   } catch (err) {
     console.error(err);

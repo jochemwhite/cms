@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 interface CheckPermissionsOptions {
-  requiredRole: Database["public"]["Enums"]["app_role"] /* Add other roles as needed from your app_role enum */;
+  requiredRole: Database["public"]["Enums"]["global_roles"] /* Add other roles as needed from your app_role enum */;
   redirectToSignIn?: boolean; // Optionally redirect to sign-in if not authenticated
   unauthorizedRedirectPath?: string; // Optionally redirect to a specific unauthorized page
 }

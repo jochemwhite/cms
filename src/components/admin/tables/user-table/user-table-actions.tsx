@@ -77,7 +77,7 @@ export default function UserTableActions({ user, canEdit }: { user: UserForProvi
           email: user.email,
           first_name: user.first_name || "",
           last_name: user.last_name || "",
-          global_role: user.roles[0].role_type_id,
+          global_role: user.roles[0] ? user.roles[0].role_type_id : "null",
           send_invite: false,
         }}
         user_id={user.id}
