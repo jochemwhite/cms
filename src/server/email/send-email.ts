@@ -22,7 +22,7 @@ interface EmailData {
 
 export async function sendEmail({ to, subject, text, html }: EmailData): Promise<{ success: boolean, error: string | null }> {
   const mailOptions = {
-    from: `Amrio CMS <${env.SMTP_FROM}>`,
+    from: `Amrio Portal <${env.SMTP_FROM}>`,
     to: to,
     subject: subject,
     text: text,

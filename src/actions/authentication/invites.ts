@@ -103,8 +103,8 @@ export async function createUserInvite(userValues: UserFormValues): Promise<Acti
       try {
         await sendEmail({
           to: userValues.email,
-          subject: "Invite to Amrio CMS",
-          text: "Invite to Amrio CMS",
+          subject: "Invite to Amrio Portal",
+          text: "Invite to Amrio Portal",
           html: emailHtml,
         });
       } catch (error) {

@@ -10,116 +10,94 @@ import { NavUser } from "./nav/nav-user";
 
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
   navMain: [
-    {
-      title: "Blogs",
-      url: "/dashboard/blogs",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "All Posts",
-          url: "/dashboard/blogs",
-        },
-        {
-          title: "Drafts",
-          url: "/dashboard/blogs/drafts",
-        },
-        {
-          title: "Categories",
-          url: "/dashboard/blogs/categories",
-        },
-        {
-          title: "Tags",
-          url: "/dashboard/blogs/tags",
-        },
-        {
-          title: "Reactions",
-          url: "/dashboard/blogs/reactions",
-        },
-      ],
-    },
-    {
-      title: "Pages",
-      url: "/dashboard/pages",
-      icon: Bot,
-      items: [
-        {
-          title: "All Pages",
-          url: "/dashboard/pages",
-        },
-        {
-          title: "Drafts",
-          url: "/dashboard/pages/drafts",
-        },
-      ],
-    },
-    {
-      title: "Events",
-      url: "/dashboard/events",
-      icon: BookOpen,
-      items: [
-        {
-          title: "All Events",
-          url: "/dashboard/events",
-        },
-        {
-          title: "Drafts",
-          url: "/dashboard/events/drafts",
-        },
-        {
-          title: "Categories",
-          url: "/dashboard/events/categories",
-        },
-      ],
-    },
+    // {
+    //   title: "Blogs",
+    //   url: "/dashboard/blogs",
+    //   icon: SquareTerminal,
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: "All Posts",
+    //       url: "/dashboard/blogs",
+    //     },
+    //     {
+    //       title: "Drafts",
+    //       url: "/dashboard/blogs/drafts",
+    //     },
+    //     {
+    //       title: "Categories",
+    //       url: "/dashboard/blogs/categories",
+    //     },
+    //     {
+    //       title: "Tags",
+    //       url: "/dashboard/blogs/tags",
+    //     },
+    //     {
+    //       title: "Reactions",
+    //       url: "/dashboard/blogs/reactions",
+    //     },
+    //   ],
+    // },
+    // {
+    //   title: "Pages",
+    //   url: "/dashboard/pages",
+    //   icon: Bot,
+    //   items: [
+    //     {
+    //       title: "All Pages",
+    //       url: "/dashboard/pages",
+    //     },
+    //     {
+    //       title: "Drafts",
+    //       url: "/dashboard/pages/drafts",
+    //     },
+    //   ],
+    // },
+    // {
+    //   title: "Events",
+    //   url: "/dashboard/events",
+    //   icon: BookOpen,
+    //   items: [
+    //     {
+    //       title: "All Events",
+    //       url: "/dashboard/events",
+    //     },
+    //     {
+    //       title: "Drafts",
+    //       url: "/dashboard/events/drafts",
+    //     },
+    //     {
+    //       title: "Categories",
+    //       url: "/dashboard/events/categories",
+    //     },
+    //   ],
+    // },
   ],
 
   projects: [
-    {
-      name: "User Management",
-      url: "/dashboard/users",
-      icon: User,
-    },
-    {
-      name: "Settings",
-      url: "/dashboard/settings",
-      icon: Settings
-    },
-    {
-      name: "Roles",
-      url: "/dashboard/projects/roles",
-      icon: Cctv,
-    },
+    // {
+    //   name: "User Management",
+    //   url: "/dashboard/users",
+    //   icon: User,
+    // },
+    // {
+    //   name: "Settings",
+    //   url: "/dashboard/settings",
+    //   icon: Settings
+    // },
+    // {
+    //   name: "Roles",
+    //   url: "/dashboard/projects/roles",
+    //   icon: Cctv,
+    // },
   ],
   admin: [
-    {
-      name: "Tenants",
-      url: "/dashboard/tenants",
-      icon: Building2,
-    },
+    // {
+    //   name: "Tenants",
+    //   url: "/dashboard/tenants",
+    //   icon: Building2,
+    // },
     {
       name: "Users",
       url: "/dashboard/admin/users",

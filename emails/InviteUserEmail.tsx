@@ -1,4 +1,3 @@
-// emails/WelcomeCMSClientEmail.tsx
 import * as React from 'react';
 import {
   Html,
@@ -12,17 +11,17 @@ import {
   Img,
 } from '@react-email/components';
 
-interface WelcomeCMSClientEmailProps {
+interface WelcomePortalClientEmailProps {
   clientName: string;
   setupLink: string; // Renamed from loginLink to better reflect purpose
   yourName: string; // New prop for the sender's name
 }
 
-export const WelcomeCMSClientEmail = ({
+export const WelcomePortalClientEmail = ({
   clientName,
   setupLink,
   yourName,
-}: WelcomeCMSClientEmailProps) => {
+}: WelcomePortalClientEmailProps) => {
   const logoUrl = 'https://xjcvdiidvtccsmbwtdmh.supabase.co/storage/v1/object/public/amrio//logo.png';
 
   return (
@@ -32,12 +31,12 @@ export const WelcomeCMSClientEmail = ({
         <Body className="bg-gray-100 font-sans text-gray-800">
           <Container className="mx-auto my-10 p-8 bg-white rounded-lg shadow-lg max-w-md">
             <Section className="text-center mb-6">
-              {/* Logo for Amrio CMS */}
+              {/* Logo for Amrio portal */}
               <Img
                 src={logoUrl} // Using the provided absolute logo URL
                 width="120"
                 height="120"
-                alt="Amrio CMS Logo"
+                alt="Amrio portal Logo"
                 className="mx-auto mb-4"
               />
               <Text className="text-2xl font-bold text-blue-600">
@@ -91,4 +90,4 @@ export const WelcomeCMSClientEmail = ({
   );
 };
 
-export default WelcomeCMSClientEmail;
+export default WelcomePortalClientEmail;

@@ -28,16 +28,13 @@ export async function checkPagePermissions(options: CheckPermissionsOptions): Pr
   try {
     const payloadBase64 = jwt.split(".")[1];
     const payload = JSON.parse(atob(payloadBase64));
-    const cmsRoles: string[] = payload?.cms_roles || []; // Default to empty array if no cms_roles claim
+    const portalRoles: string[] = payload?.portal_roles || []; // Default to empty array if no portal_roles claim
 
 
     if (options.requiredRole === "system_admin") {
-      return cmsRoles.includes("system_admin");
+      return portalRoles.includes("system_admin");
     }
-    // Add more role checks here as needed for different roles and pages
-    // else if (options.requiredRole === 'another_role') {
-    //     return cmsRoles.includes('another_role');
-    // }
+
 
     return false; // Role not recognized or not matching
   } catch (error) {

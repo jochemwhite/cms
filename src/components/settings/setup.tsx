@@ -48,7 +48,7 @@ export function Setup({ closeModal, onSuccess }: SetupProps) {
         setIsEnrolling(true); // Start loading state for enrollment
         setError(""); // Clear any previous errors
 
-        const friendlyName = `Amrio CMS 2FA ${generateUUID()}`;
+        const friendlyName = `Amrio Portal 2FA ${generateUUID()}`;
         console.log("Attempting to enroll MFA with friendly name:", friendlyName);
 
         // Supabase MFA enrollment call

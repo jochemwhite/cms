@@ -1,6 +1,5 @@
 "use server";
 
-import { env } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/SupabaseAdminClient";
 import { createClient } from "@/lib/supabase/supabaseServerClient";
 import { OnboardingFormValues } from "@/schemas/onboarding-form";
@@ -8,14 +7,14 @@ import { UserFormValues } from "@/schemas/user-form";
 import { checkRequiredRoles } from "@/server/auth/check-required-roles";
 import generateLink from "@/server/email/generateLink";
 import { sendEmail } from "@/server/email/send-email";
+import { uploadProfileImage } from "@/server/utils/upload-profile-image";
 import { ActionResponse } from "@/types/actions";
 import { Database } from "@/types/supabase";
 import { render } from "@react-email/components";
-import { SupabaseClient, User } from "@supabase/supabase-js";
+import { User } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
-import ResetPasswordEmail from "../../../emails/ResetPassword";
 import InviteUserEmail from "../../../emails/InviteUserEmail";
-import { uploadProfileImage } from "@/server/utils/upload-profile-image";
+import ResetPasswordEmail from "../../../emails/ResetPassword";
 
 // delete user
 export async function DeleteUser(user_id: string): Promise<ActionResponse<User | null>> {
@@ -270,8 +269,8 @@ export async function ResendOnboardingEmail(user_id: string): Promise<ActionResp
       );
       await sendEmail({
         to: user.email,
-        subject: "Invite to Amrio CMS",
-        text: "Invite to Amrio CMS",
+        subject: "Invite to Amrio Portal",
+        text: "Invite to Amrio Portal",
         html: emailHtml,
       });
     } catch (emailError) {

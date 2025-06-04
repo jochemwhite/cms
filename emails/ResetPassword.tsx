@@ -32,12 +32,12 @@ export const ResetPasswordEmail = ({
         <Body className="bg-gray-100 font-sans text-gray-800">
           <Container className="mx-auto my-10 p-8 bg-white rounded-lg shadow-lg max-w-md">
             <Section className="text-center mb-6">
-              {/* Logo for Amrio CMS */}
+              {/* Logo for Amrio portal */}
               <Img
                 src={logoUrl}
                 width="120"
                 height="120"
-                alt="Amrio CMS Logo"
+                alt="Amrio portal Logo"
                 className="mx-auto mb-4"
               />
               <Text className="text-2xl font-bold text-blue-600">

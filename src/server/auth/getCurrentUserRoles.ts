@@ -21,7 +21,7 @@ export async function getCurrentUserRoles(): Promise<Database["public"]["Enums"]
     const payloadBase64 = jwt.split(".")[1];
     const payload = JSON.parse(atob(payloadBase64));
 
-    return (payload?.user_role || []) as Database["public"]["Enums"]["global_roles"][] // Return cms_roles as string array, default to empty array
+    return (payload?.user_role || []) as Database["public"]["Enums"]["global_roles"][] // Return portal_roles as string array, default to empty array
   } catch (error) {
     console.error("Error decoding JWT to get user roles:", error);
     return []; // Return empty array on error
