@@ -23,6 +23,7 @@ const formSchema = z.object({
 });
 
 export default function SingInForm() {
+  const [error, setError] = useState<string | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -45,6 +46,7 @@ export default function SingInForm() {
           return "Signed in successfully";
         },
         error: (error) => {
+          setError(error.message);
           return error.message;
         },
       }
@@ -68,7 +70,13 @@ export default function SingInForm() {
                 <FormControl>
                   <LabelInputContainer className="mb-4">
                     <Label htmlFor="email">Email Address</Label>
-                    <Input id="email" placeholder="john@example.com" type="email" {...field} />
+                    <Input
+                      id="email"
+                      placeholder="john@example.com"
+                      type="email"
+                      {...field}
+                      className={form.formState.errors.email ? "border-red-500" : ""}
+                    />
                   </LabelInputContainer>
                 </FormControl>
                 <FormMessage />
@@ -91,6 +99,8 @@ export default function SingInForm() {
               </FormItem>
             )}
           />
+
+          {error && <p className="text-red-500 mb-4">{error}</p>}
 
           <button
             className="bg-gradient-to-br relative group/btn from-black dark:from-zinc-900 dark:to-zinc-900 to-neutral-600 block dark:bg-zinc-800 w-full text-white rounded-md h-10 font-medium shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
