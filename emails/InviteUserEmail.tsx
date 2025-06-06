@@ -77,7 +77,7 @@ export const WelcomePortalClientEmail = ({
               <Text>
                 Best regards,
                 <br />
-                {yourName} {/* Use the new 'yourName' prop here */}
+                {yourName} | Amrio Team
               </Text>
               <Text className="mt-4 text-xs">
                 This email was sent to you because you were invited to set up an account on Amrio dashboard.

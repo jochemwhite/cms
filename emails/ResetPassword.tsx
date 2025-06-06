@@ -15,7 +15,7 @@ import {
 interface ResetPasswordEmailProps {
   userName: string;
   resetLink: string;
-  yourName: string;
+  yourName?: string;
 }
 
 export const ResetPasswordEmail = ({
@@ -77,7 +77,7 @@ export const ResetPasswordEmail = ({
               <Text className="mt-4">
                 Best regards,
                 <br />
-                {yourName}
+                {yourName ? yourName + " | Amrio Team" : "Amrio Team"}
               </Text>
               <Text className="mt-4 text-xs">
                 This password reset link is valid for 1 hour.

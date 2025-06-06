@@ -90,12 +90,19 @@ export async function createUserInvite(userValues: UserFormValues): Promise<Acti
         type: "magiclink",
       });
 
+      const { data: userData, error: userDataError } = await supabaseAdmin.from("users").select("first_name, last_name").eq("id", currentUser.user.id).single();
+      if (userDataError) {
+        console.error("Error fetching user data:", userDataError);
+        return { success: false, error: "Failed to fetch user data." };
+      }
+
+
       // create email html
       const emailHtml = await render(
         InviteUserEmail({
-          yourName: "Amrio", // Replace with dynamic sender name if needed
+          yourName: userData.first_name || "", // Replace with dynamic sender name if needed
           setupLink: inviteLink,
-          clientName: userValues.email, // Or userValues.first_name
+          clientName: userValues.first_name || userValues.email, // Or userValues.first_name
         })
       );
 

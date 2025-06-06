@@ -185,12 +185,26 @@ export async function SendPasswordResetEmail(email: string): Promise<ActionRespo
       type: "recovery",
     });
 
+
+    const { data: userData, error: userDataError } = await supabaseAdmin.from("users").select("first_name, last_name").eq("id", currentUser.user.id).single();
+    if (userDataError) {
+      console.error("Error fetching user data:", userDataError);
+      return { success: false, error: "Failed to fetch user data." };
+    }
+
+    // get username of client
+    const { data: clientData, error: clientDataError } = await supabaseAdmin.from("users").select("first_name").eq("email", email).single();
+    if (clientDataError) {
+      console.error("Error fetching client data:", clientDataError);
+      return { success: false, error: "Failed to fetch client data." };
+    }
+
     // send email
     const emailHtml = await render(
       ResetPasswordEmail({
-        yourName: "Amrio",
+        yourName: userData.first_name || "",
         resetLink: link,
-        userName: inviteData.user.email || "",
+        userName: clientData.first_name || "",
       })
     );
 
@@ -259,12 +273,18 @@ export async function ResendOnboardingEmail(user_id: string): Promise<ActionResp
       type: "magiclink",
     });
 
+    const { data: userData, error: userDataError } = await supabaseAdmin.from("users").select("first_name, last_name").eq("id", currentUser.user.id).single();
+    if (userDataError) {
+      console.error("Error fetching user data:", userDataError);
+      return { success: false, error: "Failed to fetch user data." };
+    }
+
     try {
       const emailHtml = await render(
         InviteUserEmail({
-          yourName: "Amrio", // Replace with dynamic sender name if needed
+          yourName: userData.first_name || "", // Replace with dynamic sender name if needed
           setupLink: inviteLink,
-          clientName: user.email, // Or userValues.first_name
+          clientName: user.first_name || user.email, // Or userValues.first_name
         })
       );
       await sendEmail({
@@ -394,12 +414,13 @@ export async function ForgotPassword(email: string): Promise<ActionResponse<void
       type: "recovery",
     });
 
+ 
+
     // send email
     const emailHtml = await render(
       ResetPasswordEmail({
-        yourName: "Amrio",
         resetLink: link,
-        userName: user.email,
+        userName: user.first_name || user.email,
       })
     );
     
