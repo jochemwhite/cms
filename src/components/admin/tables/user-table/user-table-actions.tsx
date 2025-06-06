@@ -8,20 +8,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Copy, Edit, Mail, MoreHorizontal, Trash2 } from "lucide-react";
-import UserSheet from "../../sheets/user-sheet";
-import { UserForProvider } from "@/types/custom-supabase-types";
-import { useState } from "react";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
-import DeleteUserModal from "../../modals/delete-user-modal";
-import { SendPasswordResetEmail } from "@/actions/authentication/user-management";
 import { useUsers } from "@/providers/users-providers";
+import { UserForProvider } from "@/types/custom-supabase-types";
+import { Copy, Edit, Mail, MoreHorizontal, Trash2 } from "lucide-react";
+import { useState } from "react";
+import DeleteUserModal from "../../modals/delete-user-modal";
+import UserSheet from "../../sheets/user-sheet";
 
 export default function UserTableActions({ user, canEdit }: { user: UserForProvider; canEdit: boolean }) {
   const [open, setOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const copyToClipboard = useCopyToClipboard();
   const { handleSendPasswordResetEmail, handleResendOnboardingEmail } = useUsers();
+
 
   return (
     <div className="text-right">

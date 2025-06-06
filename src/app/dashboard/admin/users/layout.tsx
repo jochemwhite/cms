@@ -58,6 +58,7 @@ export default async function UsersLayout({ children }: { children: React.ReactN
       last_name,
       created_at,      
       avatar,
+      is_onboarded,
       user_global_roles (
         id, 
         global_role_types (
@@ -78,6 +79,8 @@ export default async function UsersLayout({ children }: { children: React.ReactN
     // Handle error, e.g., display a message or redirect
     return <div>Error loading users: {usersError.message}</div>;
   }
+
+
 
   // 3. Transform Raw User Data to Desired Format
   const usersWithRoles: UserForProvider[] = (usersRaw || []).map((user) => {
