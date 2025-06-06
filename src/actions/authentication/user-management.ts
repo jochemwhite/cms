@@ -180,7 +180,7 @@ export async function SendPasswordResetEmail(email: string): Promise<ActionRespo
     }
     // create password reset link
     const link = generateLink({
-      next: "/auth/update-password",
+      next: "/password-reset",
       token: inviteData.properties.hashed_token,
       type: "recovery",
     });
