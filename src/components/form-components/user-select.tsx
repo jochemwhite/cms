@@ -1,25 +1,25 @@
-import React from "react";
-import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { FormControl } from "@/components/ui/form";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/supabaseClient";
-import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
-import { UserCreationForm } from "../admin/forms/user-create-form";
+import React, { useEffect } from "react";
+import UserSheet from "@/components/admin/sheets/user-sheet";
+import { User, Plus, Search } from "lucide-react";
 
 export interface UserSelectProps {
   value: string | undefined;
   onChange: (value: string) => void;
-  onCreateNew: () => void;
   placeholder?: string;
 }
 
-export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreateNew, placeholder }) => {
+export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, placeholder }) => {
   const [users, setUsers] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [fetched, setFetched] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [sheetOpen, setSheetOpen] = React.useState(false);
+
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -42,6 +42,18 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
 
   const selectedUser = users.find((u) => u.id === value);
 
+  const openSheet = async (id: string) => {
+    onChange(id);
+    setSheetOpen(true);
+  };
+
+  const handleSuccess = async (id: string) => {
+    await fetchUsers();
+    onChange(id);
+    setSheetOpen(false);
+    setOpen(false);
+  };
+
   return (
     <>
       <Select
@@ -57,13 +69,21 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
         <FormControl>
           <SelectTrigger>
             <SelectValue placeholder={placeholder || "Select a user"}>
-              {selectedUser ? `${selectedUser.first_name} ${selectedUser.last_name} (${selectedUser.email})` : null}
+              {selectedUser ? (
+                <span className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  {`${selectedUser.first_name} ${selectedUser.last_name} (${selectedUser.email})`}
+                </span>
+              ) : null}
             </SelectValue>
           </SelectTrigger>
         </FormControl>
         <SelectContent>
           <Command shouldFilter={false} className="p-0">
-            <CommandInput placeholder="Search users..." value={search} onValueChange={setSearch} autoFocus />
+            <div className="flex items-center px-2 py-2 gap-2">
+              <Search className="w-4 h-4 text-muted-foreground" />
+              <CommandInput placeholder="Search users..." value={search} onValueChange={setSearch} autoFocus className="flex-1" />
+            </div>
             <CommandList>
               {loading ? (
                 <div className="p-2 text-sm text-muted-foreground">Loading...</div>
@@ -80,17 +100,25 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
                         setSheetOpen(false);
                       }}
                     >
-                      {user.first_name} {user.last_name} ({user.email})
+                      <span className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        {user.first_name} {user.last_name} ({user.email})
+                      </span>
                     </CommandItem>
                   ))}
                   <CommandItem
                     value="__create_new__"
                     className="text-primary font-semibold border-t mt-2 pt-2"
-                    onSelect={() => {
-                      setSheetOpen(true);
+                    onSelect={(id: string) => {
+                      console.log("create new user", id);
+                      openSheet(id);
+                      setOpen(false);
                     }}
                   >
-                    + Create new user…
+                    <span className="flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      + Create new user…
+                    </span>
                   </CommandItem>
                 </>
               )}
@@ -99,6 +127,11 @@ export const UserSelect: React.FC<UserSelectProps> = ({ value, onChange, onCreat
         </SelectContent>
       </Select>
 
+      <UserSheet
+        sheetOpen={sheetOpen}
+        setSheetOpen={setSheetOpen}
+        onSuccess={handleSuccess}
+      />
     </>
   );
 };

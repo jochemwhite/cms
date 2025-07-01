@@ -11,7 +11,7 @@ import { render } from "@react-email/components";
 import { revalidatePath } from "next/cache";
 import InviteUserEmail from "../../../emails/InviteUserEmail";
 
-export async function createUserInvite(userValues: UserFormValues): Promise<ActionResponse<void>> {
+export async function createUserInvite(userValues: UserFormValues): Promise<ActionResponse<string>> {
   const supabase = await createClient(); // Client for user-level operations (respects RLS)
   let newUserId: string | null = null; // To store the ID of the newly created auth user for cleanup
 
@@ -121,7 +121,7 @@ export async function createUserInvite(userValues: UserFormValues): Promise<Acti
     }
 
     revalidatePath("/dashboard/admin/users", "layout");
-    return { success: true };
+    return { success: true, data: newUserId };
   } catch (overallError: any) {
     console.error("An unexpected error occurred in createUserInvite:", overallError);
     // Attempt to clean up auth user if created but something else failed

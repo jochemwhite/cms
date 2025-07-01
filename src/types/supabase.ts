@@ -46,8 +46,9 @@ export type Database = {
         Row: {
           error_message: string | null
           html_body: string | null
-          id: number
+          id: string
           message_id: string | null
+          origin: string
           sent_at: string
           status: string
           subject: string
@@ -57,8 +58,9 @@ export type Database = {
         Insert: {
           error_message?: string | null
           html_body?: string | null
-          id?: number
+          id?: string
           message_id?: string | null
+          origin?: string
           sent_at?: string
           status: string
           subject: string
@@ -68,8 +70,9 @@ export type Database = {
         Update: {
           error_message?: string | null
           html_body?: string | null
-          id?: number
+          id?: string
           message_id?: string | null
+          origin?: string
           sent_at?: string
           status?: string
           subject?: string
@@ -95,6 +98,197 @@ export type Database = {
           role_name?: string
         }
         Relationships: []
+      }
+      moneybird: {
+        Row: {
+          access_token: string
+          created_at: string
+          ID: string
+          refresh_token: string | null
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          ID?: string
+          refresh_token?: string | null
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          ID?: string
+          refresh_token?: string | null
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          provider: string | null
+          provider_service_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          provider?: string | null
+          provider_service_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          provider?: string | null
+          provider_service_id?: string | null
+        }
+        Relationships: []
+      }
+      tenant_services: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          external_subscription_id: string | null
+          id: string
+          metadata: Json | null
+          notes: string | null
+          service_id: string | null
+          start_date: string | null
+          status: string | null
+          tenant_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          external_subscription_id?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          service_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          external_subscription_id?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          service_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          tenant_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_services_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          address: string | null
+          address2: string | null
+          billing_slug: string | null
+          business_type: string
+          city: string | null
+          contact_email: string | null
+          country: string | null
+          created_at: string | null
+          id: string
+          kvk_number: string | null
+          logo_url: string | null
+          moneybird_contact_id: string | null
+          name: string
+          notes: string | null
+          pax8_customer_id: string | null
+          phone: string | null
+          postal_code: string | null
+          primary_contact_user_id: string | null
+          state_or_province: string | null
+          stripe_customer_id: string | null
+          updated_at: string | null
+          vat_number: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          address2?: string | null
+          billing_slug?: string | null
+          business_type: string
+          city?: string | null
+          contact_email?: string | null
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          kvk_number?: string | null
+          logo_url?: string | null
+          moneybird_contact_id?: string | null
+          name: string
+          notes?: string | null
+          pax8_customer_id?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          primary_contact_user_id?: string | null
+          state_or_province?: string | null
+          stripe_customer_id?: string | null
+          updated_at?: string | null
+          vat_number?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          address2?: string | null
+          billing_slug?: string | null
+          business_type?: string
+          city?: string | null
+          contact_email?: string | null
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          kvk_number?: string | null
+          logo_url?: string | null
+          moneybird_contact_id?: string | null
+          name?: string
+          notes?: string | null
+          pax8_customer_id?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          primary_contact_user_id?: string | null
+          state_or_province?: string | null
+          stripe_customer_id?: string | null
+          updated_at?: string | null
+          vat_number?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenants_primary_contact_user_id_fkey"
+            columns: ["primary_contact_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_global_roles: {
         Row: {
@@ -131,6 +325,38 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_tenants: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string | null
+          tenant_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: string | null
+          tenant_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string | null
+          tenant_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tenants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]

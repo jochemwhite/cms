@@ -59,7 +59,7 @@ export async function DeleteUser(user_id: string): Promise<ActionResponse<User |
 }
 
 // update user
-export async function UpdateUser(user_id: string, formData: Partial<UserFormValues>): Promise<ActionResponse<void>> {
+export async function UpdateUser(user_id: string, formData: Partial<UserFormValues>): Promise<ActionResponse<string>> {
   const supabase = await createClient();
   // check if user is admin
   const { data: currentUser, error: currentUserError } = await supabase.auth.getUser();

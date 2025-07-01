@@ -19,7 +19,7 @@ import { useUsers } from "@/providers/users-providers";
 import { GlobalRoleSelect } from "@/components/form-components/global-role-select";
 
 export interface UserCreationFormProps {
-  onSuccess: (user: any) => void;
+  onSuccess: (user_id: string) => void;
   initialData?: UserFormValues;
   isEdit?: boolean;
   user_id?: string;
@@ -59,8 +59,8 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, i
   const newUserSubmit = async (data: UserFormValues) => {
     try {
       const response = await createUserInvite(data);
-      if (response.success) {
-        onSuccess(response.data);
+      if (response.success && response.data) {
+        onSuccess(response.data );
       } else {
         setError(response.error ?? "Unknown error occurred");
       }
@@ -74,7 +74,7 @@ export const UserCreationForm: React.FC<UserCreationFormProps> = ({ onSuccess, i
   const updateUser = async (data: UserFormValues, user_id: string) => {
     try {
       const response = await UpdateUser(user_id, data);
-      if (response.success) {
+      if (response.success && response.data) {
         onSuccess(response.data);
       } else {
         setError(response.error ?? "Unknown error occurred");

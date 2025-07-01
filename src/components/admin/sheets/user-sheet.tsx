@@ -8,9 +8,10 @@ interface UserSheetProps {
   setSheetOpen: (open: boolean) => void;
   initialData?: UserFormValues;
   user_id?: string;
+  onSuccess: (id: string) => void;
 }
 
-export default function UserSheet({ sheetOpen, setSheetOpen, initialData, user_id }: UserSheetProps) {
+export default function UserSheet({ sheetOpen, setSheetOpen, initialData, user_id, onSuccess }: UserSheetProps) {
   return (
     <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
       <SheetContent>
@@ -18,15 +19,8 @@ export default function UserSheet({ sheetOpen, setSheetOpen, initialData, user_i
           <SheetTitle>{!!initialData ? "Edit user" : "Create new user"}</SheetTitle>
         </SheetHeader>
 
-        <UserCreationForm
-          onSuccess={() => {
-            setSheetOpen(false);
-          }}
-          initialData={initialData}
-          isEdit={!!initialData}
-          user_id={user_id}
-        />
+        <UserCreationForm onSuccess={onSuccess} initialData={initialData} isEdit={!!initialData} user_id={user_id} />
       </SheetContent>
-    </Sheet>  
+    </Sheet>
   );
 }

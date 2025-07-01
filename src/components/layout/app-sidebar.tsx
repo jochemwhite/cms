@@ -103,6 +103,11 @@ const data = {
       url: "/dashboard/admin/users",
       icon: User,
     },
+    {
+      name: "Tenants",
+      url: "/dashboard/admin/tenants",
+      icon: Building2,
+    },
   ],
 };
 
