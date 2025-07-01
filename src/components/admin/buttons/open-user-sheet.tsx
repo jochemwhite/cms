@@ -16,7 +16,7 @@ export default function OpenUserSheetButton({ label = "Add User" }: OpenUserShee
       <Button onClick={() => setSheetOpen(true)}>
         {label}
       </Button>
-      <UserSheet sheetOpen={sheetOpen} setSheetOpen={setSheetOpen} />
+      <UserSheet sheetOpen={sheetOpen} setSheetOpen={setSheetOpen} onSuccess={() => setSheetOpen(false)} />
     </>
   );
 }

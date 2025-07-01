@@ -81,6 +81,7 @@ export default function UserTableActions({ user, canEdit }: { user: UserForProvi
           send_invite: false,
         }}
         user_id={user.id}
+        onSuccess={() => setOpen(false)}
       />
       <DeleteUserModal open={showDeleteModal} onOpenChange={setShowDeleteModal} userEmail={user.email} userId={user.id} />
     </div>

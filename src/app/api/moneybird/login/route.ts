@@ -4,7 +4,7 @@ import { env } from "@/lib/env";
 const clientId = env.NEXT_PUBLIC_MONEYBIRD_CLIENT_ID!;
 const redirectUri = `${env.NEXT_PUBLIC_APP_URL}/api/moneybird/callback`;
 
-export function GET(req: NextRequest, res: NextResponse) {
+export function GET() {
   const scopes = ["sales_invoices", "documents", "estimates", "bank", "time_entries", "settings"];
 
   const params = new URLSearchParams({
