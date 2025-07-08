@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { createTenant } from "@/actions/tenant/tenant-management";
 
 export type TenantFormValues = {
-  name: string;
+  company_name?: string;
   billing_slug?: string;
   logo_url?: string;
   contact_email: string;
@@ -33,7 +33,6 @@ export type TenantFormValues = {
   orderApprovalRequired?: boolean;
   primary_contact_user_id?: string;
   isBusinessContact?: boolean;
-  company_name?: string;
   firstname?: string;
   lastname?: string;
   vat_number?: string;
@@ -52,7 +51,7 @@ interface TenantFormProps {
 export function TenantForm({ initialValues = {} }: TenantFormProps) {
   const formMethods = useForm<TenantFormValues>({
     defaultValues: {
-      name: initialValues.name || "",
+      company_name: initialValues.company_name || "",
       billing_slug: initialValues.billing_slug || "",
       logo_url: initialValues.logo_url || "",
       contact_email: initialValues.contact_email || "",
@@ -70,7 +69,6 @@ export function TenantForm({ initialValues = {} }: TenantFormProps) {
       orderApprovalRequired: initialValues.orderApprovalRequired || false,
       primary_contact_user_id: initialValues.primary_contact_user_id || undefined,
       isBusinessContact: initialValues.isBusinessContact || true,
-      company_name: initialValues.company_name || "",
       firstname: initialValues.firstname || "",
       lastname: initialValues.lastname || "",
       vat_number: initialValues.vat_number || "",
@@ -100,7 +98,7 @@ export function TenantForm({ initialValues = {} }: TenantFormProps) {
       setValue("lastname", "");
     } else {
       // Switching to individual: clear business fields
-      setValue("name", "");
+      setValue("company_name", "");
       setValue("vat_number", "");
       setValue("kvk_number", "");
     }
@@ -166,7 +164,7 @@ export function TenantForm({ initialValues = {} }: TenantFormProps) {
             {isBusinessContact ? (
               <>
                 <FormField
-                  name="name"
+                  name="company_name"
                   rules={{
                     required: createStripe || createMoneybird ? "Tenant Name is required" : false,
                   }}

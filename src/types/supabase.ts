@@ -103,20 +103,20 @@ export type Database = {
         Row: {
           access_token: string
           created_at: string
-          ID: string
-          refresh_token: string | null
+          id: string
+          refresh_token: string
         }
         Insert: {
           access_token: string
           created_at?: string
-          ID?: string
-          refresh_token?: string | null
+          id?: string
+          refresh_token: string
         }
         Update: {
           access_token?: string
           created_at?: string
-          ID?: string
-          refresh_token?: string | null
+          id?: string
+          refresh_token?: string
         }
         Relationships: []
       }
@@ -147,56 +147,64 @@ export type Database = {
         }
         Relationships: []
       }
-      tenant_services: {
+      subscriptions: {
         Row: {
+          cancel_at_period_end: boolean | null
+          canceled_at: string | null
           created_at: string | null
-          end_date: string | null
-          external_subscription_id: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          ended_at: string | null
           id: string
           metadata: Json | null
-          notes: string | null
-          service_id: string | null
-          start_date: string | null
-          status: string | null
-          tenant_id: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          stripe_subscription_id: string
+          tenant_id: string
+          trial_end: string | null
+          trial_start: string | null
           updated_at: string | null
         }
         Insert: {
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
           created_at?: string | null
-          end_date?: string | null
-          external_subscription_id?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          ended_at?: string | null
           id?: string
           metadata?: Json | null
-          notes?: string | null
-          service_id?: string | null
-          start_date?: string | null
-          status?: string | null
-          tenant_id?: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          stripe_subscription_id: string
+          tenant_id: string
+          trial_end?: string | null
+          trial_start?: string | null
           updated_at?: string | null
         }
         Update: {
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
           created_at?: string | null
-          end_date?: string | null
-          external_subscription_id?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          ended_at?: string | null
           id?: string
           metadata?: Json | null
-          notes?: string | null
-          service_id?: string | null
-          start_date?: string | null
-          status?: string | null
-          tenant_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          stripe_subscription_id?: string
+          tenant_id?: string
+          trial_end?: string | null
+          trial_start?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_services_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tenant_services_tenant_id_fkey"
+            foreignKeyName: "subscriptions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -434,6 +442,16 @@ export type Database = {
     }
     Enums: {
       global_roles: "default_user" | "system_admin"
+      subscription_status:
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "canceled"
+        | "unpaid"
+        | "incomplete"
+        | "incomplete_expired"
+        | "ended"
+        | "paused"
     }
     CompositeTypes: {
       cms_role_type: {
@@ -557,6 +575,17 @@ export const Constants = {
   public: {
     Enums: {
       global_roles: ["default_user", "system_admin"],
+      subscription_status: [
+        "trialing",
+        "active",
+        "past_due",
+        "canceled",
+        "unpaid",
+        "incomplete",
+        "incomplete_expired",
+        "ended",
+        "paused",
+      ],
     },
   },
 } as const

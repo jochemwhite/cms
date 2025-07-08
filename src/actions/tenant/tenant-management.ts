@@ -8,6 +8,7 @@ import { Database } from "@/types/supabase";
 
 export async function createTenant(tenant: TenantFormValues) {
   const supabase = await createClient();
+  
 
   const { data, error } = await supabase
     .from("tenants")
@@ -40,6 +41,7 @@ export async function createTenant(tenant: TenantFormValues) {
   }
 
   const name = tenant.isBusinessContact ? tenant.company_name : `${tenant.firstname} ${tenant.lastname}`;
+  console.log("name", name);
 
   if (!name) {
     throw new Error("Missing required fields for Stripe customer creation: email is required");
@@ -57,7 +59,7 @@ export async function createTenant(tenant: TenantFormValues) {
     ) {
       console.log("Missing required fields:", {
         contact_email: !tenant.contact_email,
-        name: !tenant.name,
+        company_name: !tenant.company_name,
         address: !tenant.address,
         city: !tenant.city,
         stateOrProvince: !tenant.stateOrProvince,

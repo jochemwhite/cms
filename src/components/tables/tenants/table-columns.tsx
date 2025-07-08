@@ -32,7 +32,7 @@ export const columns: ColumnDef<Tenant>[] = [
     accessorKey: "name",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Tenant Name" />,
     cell: ({ row }) => (
-      <Link href={`/dashboard/tenants/${row.original.id}`}>{row.getValue("name")}</Link>
+      <Link href={`/dashboard/admin/tenants/${row.original.id}`}>{row.getValue("name")}</Link>
     ),
   },
   {
@@ -68,7 +68,7 @@ export const columns: ColumnDef<Tenant>[] = [
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem>
-            <Link href={`/dashboard/tenants/${row.original.id}`}>View details</Link>
+            <Link href={`/dashboard/admin/tenants/${row.original.id}`}>View details</Link>
           </DropdownMenuItem>
           <DropdownMenuItem>Edit</DropdownMenuItem>
           <DropdownMenuSeparator />
