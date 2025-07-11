@@ -7,72 +7,25 @@ import { NavAdmin } from "./nav/nav-admin";
 import { NavMain } from "./nav/nav-main";
 import { NavProjects } from "./nav/nav-projects";
 import { NavUser } from "./nav/nav-user";
-
+import { TeamSwitcher } from "./nav/team-switcher";
 
 const data = {
   navMain: [
-    // {
-    //   title: "Blogs",
-    //   url: "/dashboard/blogs",
-    //   icon: SquareTerminal,
-    //   isActive: true,
-    //   items: [
-    //     {
-    //       title: "All Posts",
-    //       url: "/dashboard/blogs",
-    //     },
-    //     {
-    //       title: "Drafts",
-    //       url: "/dashboard/blogs/drafts",
-    //     },
-    //     {
-    //       title: "Categories",
-    //       url: "/dashboard/blogs/categories",
-    //     },
-    //     {
-    //       title: "Tags",
-    //       url: "/dashboard/blogs/tags",
-    //     },
-    //     {
-    //       title: "Reactions",
-    //       url: "/dashboard/blogs/reactions",
-    //     },
-    //   ],
-    // },
-    // {
-    //   title: "Pages",
-    //   url: "/dashboard/pages",
-    //   icon: Bot,
-    //   items: [
-    //     {
-    //       title: "All Pages",
-    //       url: "/dashboard/pages",
-    //     },
-    //     {
-    //       title: "Drafts",
-    //       url: "/dashboard/pages/drafts",
-    //     },
-    //   ],
-    // },
-    // {
-    //   title: "Events",
-    //   url: "/dashboard/events",
-    //   icon: BookOpen,
-    //   items: [
-    //     {
-    //       title: "All Events",
-    //       url: "/dashboard/events",
-    //     },
-    //     {
-    //       title: "Drafts",
-    //       url: "/dashboard/events/drafts",
-    //     },
-    //     {
-    //       title: "Categories",
-    //       url: "/dashboard/events/categories",
-    //     },
-    //   ],
-    // },
+    {
+      title: "Pages",
+      url: "/dashboard/pages",
+      icon: Bot,
+      items: [
+        {
+          title: "All Pages",
+          url: "/dashboard/pages",
+        },
+        {
+          title: "Drafts",
+          url: "/dashboard/pages/drafts",
+        },
+      ],
+    },
   ],
 
   projects: [
@@ -93,11 +46,6 @@ const data = {
     // },
   ],
   admin: [
-    // {
-    //   name: "Tenants",
-    //   url: "/dashboard/tenants",
-    //   icon: Building2,
-    // },
     {
       name: "Users",
       url: "/dashboard/admin/users",
@@ -108,6 +56,11 @@ const data = {
       url: "/dashboard/admin/tenants",
       icon: Building2,
     },
+    {
+      name: "Websites",
+      url: "/dashboard/admin/websites",
+      icon: GalleryVerticalEnd,
+    },
   ],
 };
 
@@ -117,7 +70,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        {/* <TeamSwitcher teams={data.teams} /> */}
+        <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />

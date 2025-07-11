@@ -10,25 +10,27 @@ import { redirect, unauthorized } from "next/navigation";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return unauthorized();
   }
-  
-  const { data, error } = (await supabase.rpc('get_user_session', { 
-    p_uid: user.id 
-  })) as unknown as { data: UserSession; error: PostgrestError | null };    
-  
+
+  const { data, error } = (await supabase.rpc("get_user_session", {
+    p_uid: user.id,
+  })) as unknown as { data: UserSession; error: PostgrestError | null };
+
   if (error) {
     console.log(error);
     return unauthorized();
   }
-  
+
   if (!data?.user_info?.is_onboarded) {
     return redirect("/onboarding");
   }
-  
+
   return (
     <ClientSessionWrapper userData={data as UserSession}>
       <SidebarProvider>

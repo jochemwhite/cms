@@ -42,7 +42,7 @@ export function NavMain({
         </SidebarMenuItem>
        </SidebarMenu>
 
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel>CMS</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible key={item.title} asChild defaultOpen={item.isActive} className="group/collapsible">
