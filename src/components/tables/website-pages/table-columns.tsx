@@ -18,6 +18,7 @@ import {
 import { Edit, Trash2, Archive, Play, MoreVertical, FileText, Calendar, Eye } from "lucide-react";
 import { PageStatus } from "@/types/cms";
 import { DataTableColumnHeader } from "./page-table-column-header";
+import { Database } from "@/types/supabase";
 
 export type Page = {
   id: string;
@@ -32,7 +33,7 @@ export type Page = {
 };
 
 interface PageTableActionsProps {
-  page: Page;
+  page: Database["public"]["Tables"]["cms_pages"]["Row"];
   onEdit: (pageId: string) => void;
   onEditSchema: (pageId: string) => void;
   onDelete: (pageId: string) => void;
@@ -111,7 +112,7 @@ export const createColumns = (
   onEditSchema: (pageId: string) => void,
   onDelete: (pageId: string) => void,
   onStatusChange: (pageId: string, status: PageStatus) => void
-): ColumnDef<Page>[] => [
+): ColumnDef<Database["public"]["Tables"]["cms_pages"]["Row"]>[] => [
   {
     accessorKey: "name",
     header: ({ column }) => <DataTableColumnHeader column={column} title="Name" />,

@@ -9,9 +9,11 @@ interface Props {
   isFormOpen: boolean;
   handleFormClose: () => void;
   page?: Database["public"]["Tables"]["cms_pages"]["Row"];
+  websiteId: string;
+  onSuccess: (data: Database["public"]["Tables"]["cms_pages"]["Row"]) => void;
 }
 
-export default function PageFormModal({  isFormOpen, handleFormClose, page }: Props) {
+export default function PageFormModal({  isFormOpen, handleFormClose, page, websiteId, onSuccess }: Props) {
 
 
   return (
@@ -22,7 +24,7 @@ export default function PageFormModal({  isFormOpen, handleFormClose, page }: Pr
       description="This is the page form"
       contentClassName="max-w-sm"
     >
-      <PageForm isOpen={isFormOpen} onClose={handleFormClose} page={page} />
+      <PageForm isOpen={isFormOpen} onClose={handleFormClose} page={page} websiteId={websiteId} onSuccess={onSuccess} />
     </Modal>
   );
 }

@@ -14,12 +14,11 @@ import PageFormModal from "../modals/page-form-modal";
 
 interface PageOverviewProps {
   pages: Database["public"]["Tables"]["cms_pages"]["Row"][];
-  onEditPage?: (pageId: string) => void;
-  onEditSchema?: (pageId: string) => void;
+  websiteId: string;
 }
 
-export function PageOverview({ pages, onEditPage, onEditSchema }: PageOverviewProps) {
-  const [data, setData] = useState<PageTableType[]>(pages as PageTableType[]);
+export function PageOverview({ pages, websiteId }: PageOverviewProps) {
+  const [data, setData] = useState<Database["public"]["Tables"]["cms_pages"]["Row"][]>(pages);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [page, setPage] = useState<Database["public"]["Tables"]["cms_pages"]["Row"] | undefined>(undefined);
 
@@ -30,11 +29,15 @@ export function PageOverview({ pages, onEditPage, onEditSchema }: PageOverviewPr
     archived: pages.filter((page) => page.status === "archived").length,
   };
 
+  const handleSuccess = (data: Database["public"]["Tables"]["cms_pages"]["Row"]) => {
+    setData((prev) => [...prev, data]);
+  };
+
   const handleDeletePage = async (pageId: string) => {
     try {
-      const result = await deletePage(pageId);
+      const result = await deletePage({ id: pageId, websiteId });
       if (result.success) {
-        setData(prev => prev.filter(page => page.id !== pageId));
+        setData((prev) => prev.filter((page) => page.id !== pageId));
         toast.success("Page deleted successfully");
       } else {
         toast.error(result.error || "Failed to delete page");
@@ -46,20 +49,10 @@ export function PageOverview({ pages, onEditPage, onEditSchema }: PageOverviewPr
 
   const handleStatusChange = (pageId: string, newStatus: PageStatus) => {
     // Update local state optimistically
-    setData(prev => prev.map(page => 
-      page.id === pageId ? { ...page, status: newStatus } : page
-    ));
+    setData((prev) => prev.map((page) => (page.id === pageId ? { ...page, status: newStatus } : page)));
 
     const statusText = newStatus === "active" ? "activated" : newStatus === "archived" ? "archived" : "set to draft";
     toast.success(`Page ${statusText} successfully`);
-  };
-
-  const handleEdit = (pageId: string) => {
-    onEditPage?.(pageId);
-  };
-
-  const handleEditSchema = (pageId: string) => {
-    onEditSchema?.(pageId);
   };
 
   const handleNewPage = () => {
@@ -72,12 +65,17 @@ export function PageOverview({ pages, onEditPage, onEditSchema }: PageOverviewPr
     setPage(undefined);
   };
 
-  const columns = createColumns(
-    handleEdit,
-    handleEditSchema,
-    handleDeletePage,
-    handleStatusChange
-  );
+  const handleEdit = (pageId: string) => {
+    setIsFormOpen(true);
+    setPage(pages.find((page) => page.id === pageId));
+  };
+
+  const handleEditSchema = (pageId: string) => {
+    setIsFormOpen(true);
+    setPage(pages.find((page) => page.id === pageId));
+  };
+
+  const columns = createColumns(handleEdit, handleEditSchema, handleDeletePage, handleStatusChange);
 
   return (
     <div className="space-y-6">
@@ -95,16 +93,13 @@ export function PageOverview({ pages, onEditPage, onEditSchema }: PageOverviewPr
         </div>
       </div>
 
-      <PageFormModal isFormOpen={isFormOpen} handleFormClose={handleFormClose} page={page} />
+      <PageFormModal isFormOpen={isFormOpen} handleFormClose={handleFormClose} page={page} websiteId={websiteId} onSuccess={handleSuccess} />
 
       {/* Stats Cards */}
       <WebsiteStats total={stats.total} active={stats.active} draft={stats.draft} archived={stats.archived} />
 
       {/* Pages Table */}
-      <DataTable 
-        columns={columns} 
-        data={data} 
-      />
+      <DataTable columns={columns} data={data} />
     </div>
   );
 }

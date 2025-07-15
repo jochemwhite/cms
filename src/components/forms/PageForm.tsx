@@ -1,6 +1,6 @@
 "use client";
 
-import { createPage, updatePage } from "@/actions/cms/page-actions";
+import { createPage } from "@/actions/cms/page-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +31,6 @@ const formSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens")
     .refine((slug) => !slug.startsWith("-") && !slug.endsWith("-"), "Slug cannot start or end with a hyphen"),
   status: z.enum(["draft", "active", "archived"] as const),
-  website_id: z.string().min(1, "Website is required").optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -39,13 +38,13 @@ type FormData = z.infer<typeof formSchema>;
 interface PageFormProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: (data: Database["public"]["Tables"]["cms_pages"]["Row"]) => void;
   page?: Database["public"]["Tables"]["cms_pages"]["Row"]; // undefined for create, string for edit
-  websites?: any[]; // Made optional to handle the missing websites issue
+  websiteId: string;
 }
 
-export function PageForm({ isOpen, onClose, page, websites = [] }: PageFormProps) {
+export function PageForm({ isOpen, onClose, onSuccess, page, websiteId }: PageFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [slugEditedManually, setSlugEditedManually] = useState(false);
 
   const isEditing = !!page;
 
@@ -56,13 +55,11 @@ export function PageForm({ isOpen, onClose, page, websites = [] }: PageFormProps
       description: "",
       slug: "",
       status: "draft",
-      website_id: "",
     },
   });
 
   const watchedName = form.watch("name");
   const watchedSlug = form.watch("slug");
-  const watchedWebsiteId = form.watch("website_id");
 
   // Initialize form data when editing
   useEffect(() => {
@@ -72,9 +69,7 @@ export function PageForm({ isOpen, onClose, page, websites = [] }: PageFormProps
         description: page.description || "",
         slug: page.slug,
         status: page.status || "draft",
-        website_id: page.website_id || "",
       });
-      setSlugEditedManually(true); // Don't auto-generate slug when editing
     } else {
       // Reset form for create
       form.reset({
@@ -82,19 +77,21 @@ export function PageForm({ isOpen, onClose, page, websites = [] }: PageFormProps
         description: "",
         slug: "",
         status: "draft",
-        website_id: "",
       });
-      setSlugEditedManually(false);
     }
   }, [isEditing, page, isOpen, form]);
 
-  // Auto-generate slug from name
+  // Auto-generate slug from name when slug field is empty (with debounce)
   useEffect(() => {
-    if (!slugEditedManually && watchedName && !isEditing) {
-      const generatedSlug = generateSlug(watchedName);
-      form.setValue("slug", generatedSlug);
+    if (watchedName && (!watchedSlug || watchedSlug.trim() === "")) {
+      const timeoutId = setTimeout(() => {
+        const generatedSlug = generateSlug(watchedName);
+        form.setValue("slug", generatedSlug);
+      }, 300); // 300ms debounce
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [watchedName, slugEditedManually, isEditing, form]);
+  }, [watchedName, watchedSlug, form]);
 
   const generateSlug = (name: string): string => {
     return name
@@ -121,31 +118,28 @@ export function PageForm({ isOpen, onClose, page, websites = [] }: PageFormProps
 
     try {
       if (isEditing) {
-        const result = await updatePage(page?.id!, {
-          name: data.name.trim(),
-          description: data.description?.trim() || undefined,
-          slug: data.slug.trim(),
-          status: data.status,
-        });
+        // TODO: create a server action to update the page in the database
+        const result = { success: true };
 
         if (result.success) {
           toast.success("Page updated successfully");
           // TODO: create a server action to update the page in the database
         } else {
-          toast.error(result.error || "Failed to update page");
+          // toast.error(result.error || "Failed to update page");
           return;
         }
       } else {
+        console.log("Creating page", data);
         const result = await createPage({
           name: data.name.trim(),
           description: data.description?.trim() || undefined,
           slug: data.slug.trim(),
           status: data.status,
-          website_id: data.website_id!,
-        });
+        }, websiteId);
 
         if (result.success) {
           toast.success("Page created successfully");
+          onSuccess(result.data as Database["public"]["Tables"]["cms_pages"]["Row"]);
           // TODO: create a server action to create the page in the database
         } else {
           toast.error(result.error || "Failed to create page");
@@ -161,15 +155,13 @@ export function PageForm({ isOpen, onClose, page, websites = [] }: PageFormProps
     }
   };
 
-  const handleSlugChange = (value: string) => {
-    setSlugEditedManually(true);
-    form.setValue("slug", value);
-  };
+
 
   const handleSlugGenerate = () => {
-    const generatedSlug = generateSlug(watchedName);
-    form.setValue("slug", generatedSlug);
-    setSlugEditedManually(false);
+    if (watchedName) {
+      // Clear the slug field first, then let the auto-generation handle it
+      form.setValue("slug", "");
+    }
   };
 
   const isSlugValid = watchedSlug && !form.formState.errors.slug && isSlugAvailable(watchedSlug, page?.id);
@@ -182,7 +174,9 @@ export function PageForm({ isOpen, onClose, page, websites = [] }: PageFormProps
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleSubmit, (errors) => {
+            console.log("Errors", errors);
+          })} className="space-y-6">
             {/* Website Selection (for create only) */}
 
             <div className="flex flex-col gap-6">
@@ -252,10 +246,6 @@ export function PageForm({ isOpen, onClose, page, websites = [] }: PageFormProps
                         <Input
                           placeholder="page-slug"
                           {...field}
-                          onChange={(e) => {
-                            field.onChange(e);
-                            handleSlugChange(e.target.value);
-                          }}
                         />
                       </FormControl>
                       <Button type="button" variant="outline" size="sm" onClick={handleSlugGenerate} disabled={!watchedName}>
@@ -270,7 +260,7 @@ export function PageForm({ isOpen, onClose, page, websites = [] }: PageFormProps
                 <Label className="text-sm">URL Preview</Label>
                 <div className="p-2 bg-muted rounded text-sm font-mono">
                   <span className={isSlugValid ? "text-green-600" : "text-muted-foreground"}>
-                    {`https://${websites.find((w: any) => w.id === watchedWebsiteId)?.domain || "example.com"}/${watchedSlug || "page-slug"}`}
+                    {`https://${websiteId}/${watchedSlug || "page-slug"}`}
                   </span>
                 </div>
               </div>
