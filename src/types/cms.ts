@@ -163,6 +163,7 @@ export interface SchemaSection {
   id: string;
   name: string;
   description?: string | null;
+  type: string;
   order: number;
   schema_id: string;
   created_at?: string;
@@ -197,6 +198,7 @@ export type SupabaseSchemaWithRelations = {
     id: string;
     name: string;
     description: string | null;
+    type: string | null;
     order: number | null;
     schema_id: string | null;
     created_at: string | null;

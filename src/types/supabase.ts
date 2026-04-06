@@ -763,6 +763,7 @@ export type Database = {
           name: string
           order: number | null
           schema_id: string
+          type: string
           updated_at: string | null
         }
         Insert: {
@@ -772,6 +773,7 @@ export type Database = {
           name: string
           order?: number | null
           schema_id?: string
+          type?: string
           updated_at?: string | null
         }
         Update: {
@@ -781,6 +783,7 @@ export type Database = {
           name?: string
           order?: number | null
           schema_id?: string
+          type?: string
           updated_at?: string | null
         }
         Relationships: [
