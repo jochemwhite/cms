@@ -9,6 +9,7 @@ export type SchemaSavePayload = {
     order: number
     name: string
     description: string | null
+    type: string
   }>
   fields: Array<{
     id: string

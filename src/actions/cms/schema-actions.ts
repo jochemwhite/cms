@@ -275,6 +275,7 @@ export async function syncSchemaDraft(payload: {
       order: section.order ?? index,
       name: section.name,
       description: section.description ?? null,
+      type: section.type?.trim() || "default",
     })),
     fields: payload.sections.flatMap((section) =>
       (section.cms_schema_fields ?? []).map((field, index) => ({
@@ -430,6 +431,7 @@ function normalize_schema(schema: SupabaseSchemaWithRelations): Schema {
       .map((section) => ({
         ...section,
         description: section.description ?? null,
+        type: section.type ?? "default",
         order: section.order ?? 0,
         schema_id: section.schema_id ?? schema.id,
         created_at: section.created_at ?? undefined,
@@ -475,6 +477,10 @@ function validate_schema_payload(
   for (const section of payload.sections) {
     if (!section.name.trim()) {
       return { success: false, error: "A section was submitted without a name." };
+    }
+
+    if (!section.type.trim()) {
+      return { success: false, error: "A section was submitted without a type." };
     }
   }
 

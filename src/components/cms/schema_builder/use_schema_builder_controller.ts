@@ -627,6 +627,7 @@ export function useSchemaBuilderController({
       values: {
         title: targetSection.title,
         description: targetSection.description ?? "",
+        type: targetSection.type ?? "default",
       },
     })
   }
@@ -644,6 +645,7 @@ export function useSchemaBuilderController({
         id: create_item_id("section"),
         title: values.title,
         description: values.description,
+        type: values.type || "default",
         schemaId: schemaDocument.id,
         items: [],
       }
@@ -669,6 +671,7 @@ export function useSchemaBuilderController({
               ...section,
               title: values.title,
               description: values.description,
+              type: values.type || "default",
             }
           : section
       ),
@@ -956,6 +959,7 @@ function create_empty_section_values(): SectionDialogValues {
   return {
     title: "",
     description: "",
+    type: "default",
   }
 }
 

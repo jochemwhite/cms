@@ -86,6 +86,9 @@ export function SectionCard({
           </button>
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg font-semibold text-white">{section.title}</h2>
+            <Badge variant="outline" className="border-cyan-400/20 bg-cyan-500/10 text-cyan-100">
+              {section.type || "default"}
+            </Badge>
             <Badge variant="outline" className="border-white/12 bg-white/[0.04] text-slate-200">
               {count_items_deep(section.items)} fields
             </Badge>

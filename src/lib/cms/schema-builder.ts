@@ -65,6 +65,7 @@ function normalizeSection(
   return {
     ...section,
     description: section.description ?? null,
+    type: section.type ?? "default",
     order: section.order ?? 0,
     schema_id: section.schema_id ?? schemaId,
     created_at: section.created_at ?? undefined,

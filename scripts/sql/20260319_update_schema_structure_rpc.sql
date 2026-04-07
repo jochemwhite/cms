@@ -92,14 +92,16 @@ begin
       (value ->> 'id')::uuid as id,
       (value ->> 'order')::integer as order_num,
       value ->> 'name' as name,
-      value ->> 'description' as description
+      value ->> 'description' as description,
+      coalesce(nullif(trim(value ->> 'type'), ''), 'default') as type
     from jsonb_array_elements(coalesce(payload_param -> 'sections', '[]'::jsonb))
   )
   update public.cms_schema_sections s
   set
     "order" = ps.order_num,
     name = ps.name,
-    description = ps.description
+    description = ps.description,
+    type = ps.type
   from payload_sections ps
   where s.id = ps.id
     and s.schema_id = schema_id_param;
@@ -109,7 +111,8 @@ begin
       (value ->> 'id')::uuid as id,
       (value ->> 'order')::integer as order_num,
       value ->> 'name' as name,
-      value ->> 'description' as description
+      value ->> 'description' as description,
+      coalesce(nullif(trim(value ->> 'type'), ''), 'default') as type
     from jsonb_array_elements(coalesce(payload_param -> 'sections', '[]'::jsonb))
   )
   insert into public.cms_schema_sections (
@@ -117,14 +120,16 @@ begin
     schema_id,
     "order",
     name,
-    description
+    description,
+    type
   )
   select
     ps.id,
     schema_id_param,
     ps.order_num,
     ps.name,
-    ps.description
+    ps.description,
+    ps.type
   from payload_sections ps
   where not exists (
     select 1

@@ -35,6 +35,7 @@ export type SchemaSection = {
   id: string
   title: string
   description?: string | null
+  type: string
   schemaId?: string | null
   items: SchemaItem[]
 }

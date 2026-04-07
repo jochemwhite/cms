@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 export type SectionDialogValues = {
   title: string
   description: string
+  type: string
 }
 
 type SectionDialogProps = {
@@ -41,6 +42,7 @@ export function SectionDialog({ mode, open, initialValues, onClose, onSubmit }: 
     onSubmit({
       title: values.title.trim(),
       description: values.description.trim(),
+      type: values.type.trim() || "default",
     })
   }
 
@@ -85,6 +87,20 @@ export function SectionDialog({ mode, open, initialValues, onClose, onSubmit }: 
                 }))
               }
               placeholder="Optional section description"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">Type</label>
+            <Input
+              value={values.type}
+              onChange={(event) =>
+                setValues((current) => ({
+                  ...current,
+                  type: event.target.value,
+                }))
+              }
+              placeholder="default"
             />
           </div>
         </div>

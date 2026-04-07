@@ -22,6 +22,7 @@ export function map_schema_to_document(schema: Schema): SchemaDocument {
         id: section.id,
         title: section.name,
         description: section.description ?? null,
+        type: section.type ?? "default",
         schemaId: section.schema_id,
         items: build_schema_items(section.cms_schema_fields ?? [], null, section.id),
       })) ?? [],
@@ -116,6 +117,7 @@ export function serialize_schema_document(document: SchemaDocument): SchemaSaveP
       order: index,
       name: section.title,
       description: section.description ?? null,
+      type: section.type || "default",
     })),
     fields,
   }
