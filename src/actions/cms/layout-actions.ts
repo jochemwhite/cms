@@ -47,6 +47,7 @@ type LayoutTemplateWithContent = {
       id: string;
       name: string;
       description: string | null;
+      type: string | null;
       order: number;
       fields: Array<{
         id: string;
@@ -424,7 +425,7 @@ export async function getTemplateWithContent(
 
     const { data: schemaSections, error: sectionsError } = await supabase
       .from("cms_schema_sections")
-      .select("id, name, description, order")
+      .select("id, name, description, order, type")
       .eq("schema_id", layout.schema_id)
       .order("order", { ascending: true });
 
@@ -512,6 +513,7 @@ export async function getTemplateWithContent(
         id: section.id,
         name: section.name,
         description: section.description,
+        type: section.type,
         order: section.order || 0,
         fields: nestSchemaFields(sectionFields, contentBySchemaFieldId),
       };
@@ -635,7 +637,7 @@ export async function saveLayoutTemplateContent(
 
     const { data: sectionDefs, error: sectionDefsError } = await supabase
       .from("cms_schema_sections")
-      .select("id, name, description, order")
+      .select("id, name, description, order, type")
       .in("id", sectionIds);
 
     if (sectionDefsError || !sectionDefs) {
@@ -666,6 +668,27 @@ export async function saveLayoutTemplateContent(
       }
     }
 
+    for (const section of sectionDefs) {
+      const contentSectionId = contentSectionBySchemaSection.get(section.id);
+      if (!contentSectionId) {
+        continue;
+      }
+
+      const { error: updateSectionError } = await supabase
+        .from("cms_content_sections")
+        .update({
+          name: section.name,
+          description: section.description,
+          order: section.order || 0,
+          type: section.type || "default",
+        })
+        .eq("id", contentSectionId);
+
+      if (updateSectionError) {
+        return { success: false, error: updateSectionError.message };
+      }
+    }
+
     const missingSections = sectionDefs.filter(
       (s) => !contentSectionBySchemaSection.has(s.id),
     );
@@ -680,6 +703,7 @@ export async function saveLayoutTemplateContent(
               name: section.name,
               description: section.description,
               order: section.order || 0,
+              type: section.type || "default",
             })),
           )
           .select("id, schema_section_id");

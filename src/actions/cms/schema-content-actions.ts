@@ -122,6 +122,7 @@ type SchemaSectionRow = {
   name: string;
   description: string | null;
   order: number | null;
+  type: string | null;
 };
 
 // Updated savePageContent function that works with schema-based fields
@@ -177,7 +178,7 @@ export async function savePageContent(
 
     const { data: schemaSections, error: schemaSectionsError } = await supabase
       .from("cms_schema_sections")
-      .select("id, name, description, order")
+      .select("id, name, description, order, type")
       .in("id", schemaSectionIds);
 
     if (schemaSectionsError || !schemaSections) {
@@ -202,6 +203,27 @@ export async function savePageContent(
       }
     }
 
+    for (const section of schemaSections as SchemaSectionRow[]) {
+      const contentSectionId = sectionIdBySchemaSectionId.get(section.id);
+      if (!contentSectionId) {
+        continue;
+      }
+
+      const { error: updateSectionError } = await supabase
+        .from("cms_content_sections")
+        .update({
+          name: section.name,
+          description: section.description,
+          order: section.order || 0,
+          type: section.type || "default",
+        })
+        .eq("id", contentSectionId);
+
+      if (updateSectionError) {
+        return { success: false, error: updateSectionError.message };
+      }
+    }
+
     const missingSections = (schemaSections as SchemaSectionRow[]).filter(
       (section) => !sectionIdBySchemaSectionId.has(section.id)
     );
@@ -216,6 +238,7 @@ export async function savePageContent(
             name: section.name,
             description: section.description,
             order: section.order || 0,
+            type: section.type || "default",
           }))
         )
         .select("id, schema_section_id");

@@ -203,6 +203,7 @@ begin
       ss.id,
       ss.name,
       ss.description,
+      ss.type,
       coalesce(ss."order", 0) as order_num
     from public.cms_schema_sections ss
     where ss.schema_id = schema_id_value
@@ -224,6 +225,7 @@ begin
           schema_section_id,
           name,
           description,
+          type,
           "order"
         )
         values (
@@ -231,6 +233,7 @@ begin
           section_record.id,
           section_record.name,
           section_record.description,
+          coalesce(section_record.type, 'default'),
           section_record.order_num
         )
         returning id into content_section_id_value;
@@ -249,6 +252,7 @@ begin
           schema_section_id,
           name,
           description,
+          type,
           "order"
         )
         values (
@@ -256,6 +260,7 @@ begin
           section_record.id,
           section_record.name,
           section_record.description,
+          coalesce(section_record.type, 'default'),
           section_record.order_num
         )
         returning id into content_section_id_value;
@@ -274,6 +279,7 @@ begin
           schema_section_id,
           name,
           description,
+          type,
           "order"
         )
         values (
@@ -281,6 +287,7 @@ begin
           section_record.id,
           section_record.name,
           section_record.description,
+          coalesce(section_record.type, 'default'),
           section_record.order_num
         )
         returning id into content_section_id_value;
@@ -291,6 +298,7 @@ begin
       jsonb_build_object(
         'id', section_record.id,
         'name', section_record.name,
+        'type', coalesce(section_record.type, 'default'),
         'order', section_record.order_num,
         'fields', case
           when content_section_id_value is null then '[]'::jsonb

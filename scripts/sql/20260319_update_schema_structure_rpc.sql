@@ -137,6 +137,17 @@ begin
     where s.id = ps.id
   );
 
+  -- Keep already-created page/layout/collection content sections in sync with schema section metadata.
+  update public.cms_content_sections cs
+  set
+    name = s.name,
+    description = s.description,
+    type = coalesce(nullif(trim(s.type), ''), 'default'),
+    "order" = coalesce(s."order", 0)
+  from public.cms_schema_sections s
+  where cs.schema_section_id = s.id
+    and s.schema_id = schema_id_param;
+
   -- Upsert fields.
   with payload_fields as (
     select

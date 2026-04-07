@@ -77,6 +77,7 @@ type SchemaSectionRow = {
   name: string;
   description: string | null;
   order: number | null;
+  type: string | null;
 };
 
 type SchemaFieldRow = {
@@ -154,7 +155,7 @@ function nestCollectionFields(
 async function getSchemaStructure(supabase: Awaited<ReturnType<typeof createClient>>, schemaId: string) {
   const { data: schemaSections, error: sectionsError } = await supabase
     .from("cms_schema_sections")
-    .select("id, name, description, order")
+    .select("id, name, description, order, type")
     .eq("schema_id", schemaId)
     .order("order", { ascending: true });
 
@@ -212,6 +213,27 @@ async function ensureCollectionSections(
     }
   }
 
+  for (const section of schemaSections) {
+    const contentSectionId = sectionIdBySchemaSectionId.get(section.id);
+    if (!contentSectionId) {
+      continue;
+    }
+
+    const { error: updateSectionError } = await supabase
+      .from("cms_content_sections")
+      .update({
+        name: section.name,
+        description: section.description,
+        order: section.order || 0,
+        type: section.type || "default",
+      })
+      .eq("id", contentSectionId);
+
+    if (updateSectionError) {
+      return { error: updateSectionError.message, sectionIdBySchemaSectionId: new Map<string, string>() };
+    }
+  }
+
   const missingSections = schemaSections.filter((section) => !sectionIdBySchemaSectionId.has(section.id));
   if (missingSections.length > 0) {
     const { data: insertedSections, error: insertSectionsError } = await supabase
@@ -223,6 +245,7 @@ async function ensureCollectionSections(
           name: section.name,
           description: section.description,
           order: section.order || 0,
+          type: section.type || "default",
         }))
       )
       .select("id, schema_section_id");
@@ -994,7 +1017,7 @@ export async function saveCollectionEntryContent(
     const schemaSectionIds = [...new Set(schemaFields.map((field) => field.schema_section_id))];
     const { data: schemaSections, error: schemaSectionsError } = await supabase
       .from("cms_schema_sections")
-      .select("id, name, description, order")
+      .select("id, name, description, order, type")
       .in("id", schemaSectionIds);
 
     if (schemaSectionsError || !schemaSections) {

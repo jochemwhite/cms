@@ -298,6 +298,7 @@ export type Database = {
           order: number | null
           page_id: string | null
           schema_section_id: string | null
+          type: string
           updated_at: string | null
         }
         Insert: {
@@ -310,6 +311,7 @@ export type Database = {
           order?: number | null
           page_id?: string | null
           schema_section_id?: string | null
+          type?: string
           updated_at?: string | null
         }
         Update: {
@@ -322,6 +324,7 @@ export type Database = {
           order?: number | null
           page_id?: string | null
           schema_section_id?: string | null
+          type?: string
           updated_at?: string | null
         }
         Relationships: [
