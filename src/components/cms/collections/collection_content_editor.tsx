@@ -3,9 +3,11 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { CollectionEntryMetadataEditor } from "@/components/cms/CollectionEntryMetadataEditor";
 import { ContentEditor } from "@/components/cms/content-editor/content_editor";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Pencil } from "lucide-react";
 import {
   updateCollectionEntry,
@@ -47,6 +49,7 @@ export function CollectionContentEditor({
   const processedSections = useMemo(() => {
     return existingContent.sections || [];
   }, [existingContent.sections]);
+  const hasMetadataSupport = Boolean(existingContent.collection_slug_prefix && existingContent.slug);
 
   // Create save function that matches SaveContentFunction signature
   const saveFn = useMemo(() => {
@@ -129,16 +132,50 @@ export function CollectionContentEditor({
 
         <Separator className="my-6" />
 
-        <ContentEditor
-          pageId={entryId}
-          existingContent={existingContent as any}
-          originalFields={originalFields}
-          header={header}
-          saveFn={saveFn}
-          onSave={handleSave}
-          expandedSections={expandedSections}
-          setExpandedSections={setExpandedSections}
-        />
+        {hasMetadataSupport ? (
+          <Tabs defaultValue="content" className="space-y-4">
+            <TabsList variant="line">
+              <TabsTrigger value="content">Content</TabsTrigger>
+              <TabsTrigger value="metadata">Metadata</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="content">
+              <ContentEditor
+                pageId={entryId}
+                existingContent={existingContent as any}
+                originalFields={originalFields}
+                header={header}
+                saveFn={saveFn}
+                onSave={handleSave}
+                expandedSections={expandedSections}
+                setExpandedSections={setExpandedSections}
+              />
+            </TabsContent>
+
+            <TabsContent value="metadata">
+              <CollectionEntryMetadataEditor
+                entryId={entryId}
+                page={{
+                  name: entryName || existingContent.name || "Untitled Entry",
+                  website: {
+                    domain: existingContent.website_domain || "example.com",
+                  },
+                }}
+              />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <ContentEditor
+            pageId={entryId}
+            existingContent={existingContent as any}
+            originalFields={originalFields}
+            header={header}
+            saveFn={saveFn}
+            onSave={handleSave}
+            expandedSections={expandedSections}
+            setExpandedSections={setExpandedSections}
+          />
+        )}
 
         <CollectionEntryFormDialog
           key={isRenameDialogOpen ? "rename-open" : "rename-closed"}

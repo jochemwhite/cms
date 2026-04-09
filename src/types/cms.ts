@@ -73,6 +73,57 @@ export interface SupabasePage {
   updated_at?: string;
 }
 
+export type MetadataFile = Pick<
+  Database["public"]["Tables"]["files"]["Row"],
+  "id" | "storage_path" | "filename" | "alt_text" | "mime_type"
+>;
+
+export type PageMetadataRow = Database["public"]["Tables"]["cms_page_metadata"]["Row"];
+
+export type PageMetadata = PageMetadataRow & {
+  og_image_file?: MetadataFile | null;
+  twitter_image_file?: MetadataFile | null;
+};
+
+export type PageMetadataInsert = {
+  page_id: string;
+} & Partial<
+  Omit<
+    Database["public"]["Tables"]["cms_page_metadata"]["Insert"],
+    "id" | "page_id" | "created_at" | "updated_at"
+  >
+>;
+
+export type PageMetadataUpdate = Partial<
+  Omit<
+    Database["public"]["Tables"]["cms_page_metadata"]["Update"],
+    "id" | "page_id" | "created_at" | "updated_at"
+  >
+>;
+
+export type CollectionEntryMetadataRow = Database["public"]["Tables"]["cms_collection_entry_metadata"]["Row"];
+
+export type CollectionEntryMetadata = CollectionEntryMetadataRow & {
+  og_image_file?: MetadataFile | null;
+  twitter_image_file?: MetadataFile | null;
+};
+
+export type CollectionEntryMetadataInsert = {
+  entry_id: string;
+} & Partial<
+  Omit<
+    Database["public"]["Tables"]["cms_collection_entry_metadata"]["Insert"],
+    "id" | "entry_id" | "created_at" | "updated_at"
+  >
+>;
+
+export type CollectionEntryMetadataUpdate = Partial<
+  Omit<
+    Database["public"]["Tables"]["cms_collection_entry_metadata"]["Update"],
+    "id" | "entry_id" | "created_at" | "updated_at"
+  >
+>;
+
 export interface Website {
   id: string;
   tenant_id: string;
@@ -329,6 +380,7 @@ export type RPCCollectionEntryResponse = {
   schema_name: string | null;
   schema_description: string | null;
   schema_template: boolean | null;
+  website_domain?: string | null;
   sections: RPCPageSection[];
 }
 

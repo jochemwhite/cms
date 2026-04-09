@@ -747,7 +747,7 @@ export async function getCollectionEntryRPC(entryId: string): Promise<ActionResp
           description,
           slug_prefix,
           schema_id,
-          cms_websites!inner(tenant_id),
+          cms_websites!inner(tenant_id, domain),
           cms_schemas(
             id,
             name,
@@ -785,6 +785,7 @@ export async function getCollectionEntryRPC(entryId: string): Promise<ActionResp
           schema_name: null,
           schema_description: null,
           schema_template: null,
+          website_domain: (collection as any).cms_websites?.domain ?? null,
           sections: [],
         },
       };
@@ -862,6 +863,7 @@ export async function getCollectionEntryRPC(entryId: string): Promise<ActionResp
         schema_name: schema?.name || null,
         schema_description: schema?.description || null,
         schema_template: schema?.template ?? null,
+        website_domain: (collection as any).cms_websites?.domain ?? null,
         sections,
       },
     };

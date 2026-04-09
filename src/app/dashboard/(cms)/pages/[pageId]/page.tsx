@@ -37,6 +37,9 @@ export default async function PageContentPage({ params }: PageContentProps) {
   }
 
   const page = pageData as RPCPageResponse;
+  const { data: websiteData } = page.website_id
+    ? await supabase.from("cms_websites").select("domain").eq("id", page.website_id).maybeSingle()
+    : { data: null };
 
   const applyRichTextConfig = (fields: RPCPageField[]): RPCPageField[] =>
     fields.map((field) => ({
@@ -83,6 +86,13 @@ export default async function PageContentPage({ params }: PageContentProps) {
   return (
     <PageContentEditor
       pageId={pageId}
+      page={{
+        id: page.id,
+        name: page.name,
+        website: {
+          domain: websiteData?.domain ?? "example.com",
+        },
+      }}
       existingContent={page}
       originalFields={fields}
     />

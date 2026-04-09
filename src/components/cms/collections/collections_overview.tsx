@@ -18,8 +18,13 @@ interface CollectionsOverviewProps {
   websiteId: string;
 }
 
-export function CollectionsOverview({ website, initialCollections, websiteId }: CollectionsOverviewProps) {
-  const [collections, setCollections] = useState<CollectionWithSchema[]>(initialCollections);
+export function CollectionsOverview({
+  website,
+  initialCollections,
+  websiteId,
+}: CollectionsOverviewProps) {
+  const [collections, setCollections] =
+    useState<CollectionWithSchema[]>(initialCollections);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { userSession } = useUserSession();
 
@@ -34,7 +39,11 @@ export function CollectionsOverview({ website, initialCollections, websiteId }: 
 
   const handleCollectionUpdated = (updatedCollection: CollectionWithSchema) => {
     setCollections((prev) =>
-      prev.map((collection) => (collection.id === updatedCollection.id ? { ...collection, ...updatedCollection } : collection))
+      prev.map((collection) =>
+        collection.id === updatedCollection.id
+          ? { ...collection, ...updatedCollection }
+          : collection,
+      ),
     );
   };
 
@@ -44,7 +53,9 @@ export function CollectionsOverview({ website, initialCollections, websiteId }: 
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">Collections</h1>
-            <p className="text-muted-foreground mt-1">Manage content collections for {website.name}</p>
+            <p className="text-muted-foreground mt-1">
+              Manage content collections for {website.name}
+            </p>
           </div>
 
           {userSession?.global_roles?.includes("system_admin") && (
@@ -53,13 +64,15 @@ export function CollectionsOverview({ website, initialCollections, websiteId }: 
               Create Collection
             </Button>
           )}
-
         </div>
 
-        {collections.length === 0 && userSession?.global_roles?.includes("system_admin") ? (
+        {collections.length === 0 &&
+        userSession?.global_roles?.includes("system_admin") ? (
           <div className="text-center py-12 bg-muted/30 rounded-lg border-2 border-dashed">
             <h3 className="text-lg font-semibold mb-2">No collections yet</h3>
-            <p className="text-muted-foreground mb-4">Create your first collection to start managing reusable content.</p>
+            <p className="text-muted-foreground mb-4">
+              Create your first collection to start managing reusable content.
+            </p>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Create Collection
