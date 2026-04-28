@@ -15,7 +15,14 @@ import { FieldPropertiesPanel } from "./properties/field-properties-panel";
 import type { BuilderFieldType, HeadlessFormDesignerProps } from "./types";
 import { useFormDesignerController } from "./use-form-designer-controller";
 
-export function HeadlessFormDesigner({ value, onChange, submissionsCount, initialFieldKeys }: HeadlessFormDesignerProps) {
+export function HeadlessFormDesigner({
+  value,
+  onChange,
+  submissionsCount,
+  initialFieldKeys,
+  formSettings,
+  onFormSettingsChange,
+}: HeadlessFormDesignerProps) {
   const [conditionalLogicOpen, setConditionalLogicOpen] = useState(false);
   const {
     activeId,
@@ -112,6 +119,11 @@ export function HeadlessFormDesigner({ value, onChange, submissionsCount, initia
                 "min-h-[70vh] rounded-xl border border-border bg-card/80 p-4",
                 isDraggingCanvas && "border-primary/70 ring-2 ring-primary/30",
               )}
+              onMouseDown={(event) => {
+                if (event.target !== event.currentTarget) return;
+                setSelectedId(null);
+                setSidebarTab("properties");
+              }}
             >
               {value.length === 0 ? (
                 showDropIndicators ? (
@@ -199,6 +211,8 @@ export function HeadlessFormDesigner({ value, onChange, submissionsCount, initia
                 <FieldPropertiesPanel
                   selectedField={selectedField}
                   allFields={value}
+                  formSettings={formSettings ?? null}
+                  onUpdateFormSettings={onFormSettingsChange}
                   submissionsCount={submissionsCount}
                   initialFieldKeys={initialFieldKeys}
                   onConditionalLogicOpenChange={setConditionalLogicOpen}

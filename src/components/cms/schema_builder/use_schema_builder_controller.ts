@@ -758,6 +758,7 @@ export function useSchemaBuilderController({
         validation: field.validation ?? "",
         settings: field.settings ?? null,
         collectionId: field.collectionId ?? null,
+        formId: field.formId ?? null,
       },
     })
   }
@@ -798,6 +799,7 @@ export function useSchemaBuilderController({
               validation: values.validation,
               defaultValue: values.defaultValue,
               collectionId: values.collectionId,
+              formId: values.formId,
               schemaSectionId: targetSectionId,
               parentFieldId: null,
               open: true,
@@ -815,6 +817,7 @@ export function useSchemaBuilderController({
               validation: values.validation,
               defaultValue: values.defaultValue,
               collectionId: values.collectionId,
+              formId: values.formId,
               schemaSectionId: targetSectionId,
               parentFieldId: null,
             }
@@ -848,6 +851,7 @@ export function useSchemaBuilderController({
         validation: values.validation,
         settings: values.settings ?? null,
         collectionId: values.collectionId,
+        formId: values.formId,
       })),
     }))
     handle_close_field_sheet()
@@ -952,6 +956,7 @@ function create_empty_field_values(): FieldSheetValues {
     validation: "",
     settings: null,
     collectionId: null,
+    formId: null,
   }
 }
 

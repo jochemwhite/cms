@@ -13,8 +13,11 @@ type RichTextSettingsProps = {
   open?: boolean
   collectionId?: string | null
   setCollectionId?: (value: string | null) => void
+  formId?: string | null
+  setFormId?: (value: string | null) => void
   error?: string | null
   onCollectionTouched?: () => void
+  onFormTouched?: () => void
 }
 
 export function RichTextSettings({ value, setValue }: RichTextSettingsProps) {

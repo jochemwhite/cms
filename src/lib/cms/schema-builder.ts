@@ -49,6 +49,7 @@ function normalizeField(field: SupabaseSchemaField, sectionId: string): SchemaFi
     parent_field_id: field.parent_field_id ?? null,
     schema_section_id: field.schema_section_id ?? sectionId,
     collection_id: field.collection_id ?? null,
+    form_id: field.form_id ?? null,
     created_at: field.created_at ?? undefined,
     updated_at: field.updated_at ?? undefined,
   };
@@ -434,7 +435,8 @@ function fieldMetaChanged(initialField: SchemaField, nextField: SchemaField) {
     (initialField.default_value ?? null) !== (nextField.default_value ?? null) ||
     (initialField.validation ?? null) !== (nextField.validation ?? null) ||
     settingsSignature(initialField.settings) !== settingsSignature(nextField.settings) ||
-    (initialField.collection_id ?? null) !== (nextField.collection_id ?? null)
+    (initialField.collection_id ?? null) !== (nextField.collection_id ?? null) ||
+    (initialField.form_id ?? null) !== (nextField.form_id ?? null)
   );
 }
 

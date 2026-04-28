@@ -14,6 +14,7 @@ import { ActionResponse } from "@/types/actions";
 import { Database } from "@/types/supabase";
 
 export type CmsForm = Database["public"]["Tables"]["cms_forms"]["Row"];
+export type CmsFormSubmission = Database["public"]["Tables"]["cms_form_submissions"]["Row"];
 
 export interface CmsFormStats {
   visits: number;
@@ -206,10 +207,18 @@ export async function updateFormContent(
   }
 
 
+  const updatePayload: Record<string, unknown> = {
+    content: parsed.data.content as Database["public"]["Tables"]["cms_forms"]["Row"]["content"],
+  };
+
+  if (parsed.data.settings) {
+    updatePayload.settings = parsed.data.settings;
+  }
+
   const { data, error } = await supabase
     .from("cms_forms")
     .update({
-      content: parsed.data.content as Database["public"]["Tables"]["cms_forms"]["Row"]["content"],
+      ...(updatePayload as any),
     })
     .eq("id", formId)
     .eq("tenant_id", tenantId)
@@ -279,6 +288,83 @@ export async function archiveForm(formId: string): Promise<ActionResponse<void>>
 
   revalidatePath("/dashboard/forms");
   return { success: true };
+}
+
+export async function getFormSubmissions(formId: string): Promise<ActionResponse<CmsFormSubmission[]>> {
+  const supabase = await createClient();
+  const { tenantId, websiteId } = await getActiveTenantAndWebsiteIds();
+
+  if (!tenantId) {
+    return { success: false, error: "No active tenant selected." };
+  }
+
+  if (!websiteId) {
+    return { success: false, error: "No active website selected." };
+  }
+
+  const { data: form, error: formError } = await supabase
+    .from("cms_forms")
+    .select("id")
+    .eq("id", formId)
+    .eq("tenant_id", tenantId)
+    .eq("website_id", websiteId)
+    .is("archived_at", null)
+    .single();
+
+  if (formError || !form) {
+    return { success: false, error: "Form not found." };
+  }
+
+  const { data, error } = await supabase
+    .from("cms_form_submissions")
+    .select("*")
+    .eq("form_id", formId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching form submissions:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data: data ?? [] };
+}
+
+export async function getFormSubmissionById(
+  formId: string,
+  submissionId: string,
+): Promise<ActionResponse<CmsFormSubmission>> {
+  const supabase = await createClient();
+  const { tenantId, websiteId } = await getActiveTenantAndWebsiteIds();
+
+  if (!tenantId) return { success: false, error: "No active tenant selected." };
+  if (!websiteId) return { success: false, error: "No active website selected." };
+
+  const { data: form, error: formError } = await supabase
+    .from("cms_forms")
+    .select("id")
+    .eq("id", formId)
+    .eq("tenant_id", tenantId)
+    .eq("website_id", websiteId)
+    .is("archived_at", null)
+    .single();
+
+  if (formError || !form) {
+    return { success: false, error: "Form not found." };
+  }
+
+  const { data, error } = await supabase
+    .from("cms_form_submissions")
+    .select("*")
+    .eq("id", submissionId)
+    .eq("form_id", formId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching submission:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data };
 }
 
 export async function getFormStatsForActiveWebsite(): Promise<ActionResponse<CmsFormStats>> {

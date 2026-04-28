@@ -123,6 +123,8 @@ export interface BuilderField {
 export interface HeadlessFormDesignerProps {
   value: BuilderField[];
   onChange: (value: BuilderField[]) => void;
+  formSettings?: Record<string, unknown> | null;
+  onFormSettingsChange?: (settings: Record<string, unknown> | null) => void;
   submissionsCount?: number;
   initialFieldKeys?: Record<string, string | undefined>;
 }

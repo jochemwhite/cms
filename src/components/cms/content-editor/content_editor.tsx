@@ -13,7 +13,7 @@ import { SaveContentFunction, useContentEditorStore } from "@/stores/content-edi
 interface ContentEditorProps {
   pageId: string;
   existingContent: RPCPageResponse;
-  originalFields: { id: string; type: string; content: any; collection_id?: string | null }[];
+  originalFields: { id: string; type: string; content: any; collection_id?: string | null; form_id?: string | null }[];
   header?: ReactNode;
   saveFn: SaveContentFunction; // Required: Function that handles saving content
   onSave?: () => void | Promise<void>; // Optional: Called after successful save
@@ -57,6 +57,7 @@ export function ContentEditor({
         content[field.id] = {
           ...field,
           collection_id: field.collection_id || null,
+          form_id: field.form_id || null,
         };
       }
     });

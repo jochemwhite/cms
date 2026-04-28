@@ -475,6 +475,58 @@ export type Database = {
           },
         ]
       }
+      form_notification_preferences: {
+        Row: {
+          id: string
+          user_id: string
+          tenant_id: string
+          form_id: string
+          notify_email: boolean
+          notify_email_address: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          tenant_id: string
+          form_id: string
+          notify_email?: boolean
+          notify_email_address?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          tenant_id?: string
+          form_id?: string
+          notify_email?: boolean
+          notify_email_address?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_notification_preferences_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_notification_preferences_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "cms_forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cms_forms: {
         Row: {
           archived_at: string | null
@@ -861,6 +913,7 @@ export type Database = {
           created_at: string
           default_value: string | null
           field_key: string
+          form_id: string | null
           id: string
           name: string
           order: number
@@ -877,6 +930,7 @@ export type Database = {
           created_at?: string
           default_value?: string | null
           field_key: string
+          form_id?: string | null
           id?: string
           name: string
           order?: number
@@ -893,6 +947,7 @@ export type Database = {
           created_at?: string
           default_value?: string | null
           field_key?: string
+          form_id?: string | null
           id?: string
           name?: string
           order?: number
@@ -910,6 +965,13 @@ export type Database = {
             columns: ["collection_id"]
             isOneToOne: false
             referencedRelation: "cms_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cms_schema_fields_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "cms_forms"
             referencedColumns: ["id"]
           },
           {
@@ -1681,6 +1743,7 @@ export type Database = {
         | "button"
         | "social_media"
         | "navigation_menu"
+        | "contact_form"
       global_roles: "default_user" | "system_admin"
       layout_slot_type: "header" | "footer" | "sidebar" | "custom"
       page_status: "draft" | "active" | "archived"
@@ -1842,6 +1905,7 @@ export const Constants = {
         "button",
         "social_media",
         "navigation_menu",
+        "contact_form",
       ],
       global_roles: ["default_user", "system_admin"],
       layout_slot_type: ["header", "footer", "sidebar", "custom"],

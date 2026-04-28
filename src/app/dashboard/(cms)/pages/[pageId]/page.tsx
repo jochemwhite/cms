@@ -73,6 +73,7 @@ export default async function PageContentPage({ params }: PageContentProps) {
     content: unknown;
     content_field_id: string | null;
     collection_id?: string | null;
+    form_id?: string | null;
   }[] = page.sections
     .flatMap((section) => flattenFields(section.fields))
     .map((field) => ({
@@ -81,6 +82,7 @@ export default async function PageContentPage({ params }: PageContentProps) {
       content: field.content ?? null,
       content_field_id: field.content_field_id ?? null, // This is the content field ID for updates
       collection_id: field.collection_id || null,
+      form_id: field.form_id ?? null,
     }));
 
   return (

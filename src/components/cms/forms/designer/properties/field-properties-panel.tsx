@@ -56,6 +56,8 @@ import type {
 interface FieldPropertiesPanelProps {
   selectedField: BuilderField | null;
   allFields: BuilderField[];
+  formSettings?: Record<string, unknown> | null;
+  onUpdateFormSettings?: (settings: Record<string, unknown> | null) => void;
   submissionsCount?: number;
   initialFieldKeys?: Record<string, string | undefined>;
   onConditionalLogicOpenChange?: (open: boolean) => void;
@@ -489,6 +491,8 @@ function Section({
 export function FieldPropertiesPanel({
   selectedField,
   allFields,
+  formSettings = null,
+  onUpdateFormSettings,
   submissionsCount = 0,
   initialFieldKeys = {},
   onConditionalLogicOpenChange,
@@ -496,10 +500,39 @@ export function FieldPropertiesPanel({
   onRemoveField,
 }: FieldPropertiesPanelProps) {
   if (!selectedField) {
+    const submitLabel =
+      typeof (formSettings as any)?.submit_label === "string"
+        ? String((formSettings as any).submit_label)
+        : "";
+
     return (
-      <p className="text-sm text-muted-foreground">
-        Select a field in the canvas to edit its properties.
-      </p>
+      <div className="space-y-3">
+        <div className="rounded-md border border-border/70 bg-background/50 px-3 py-2">
+          <p className="text-xs text-muted-foreground">Form settings</p>
+          <p className="mt-1 text-sm font-medium text-foreground">Submission</p>
+        </div>
+
+        <div className="space-y-1.5">
+          <FieldSettingLabel
+            label="Submit button label"
+            helpText="Text shown on the submit button on client websites."
+          />
+          <Input
+            value={submitLabel}
+            placeholder="Submit"
+            onChange={(event) => {
+              const next = event.target.value;
+              onUpdateFormSettings?.({
+                ...(formSettings ?? {}),
+                submit_label: next,
+              });
+            }}
+          />
+          <p className="text-xs text-muted-foreground">
+            Tip: click the canvas background to edit form settings.
+          </p>
+        </div>
+      </div>
     );
   }
 

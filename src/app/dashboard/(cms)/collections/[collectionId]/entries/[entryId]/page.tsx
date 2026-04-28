@@ -53,7 +53,14 @@ export default async function CollectionEntryPage({ params }: CollectionEntryPag
   };
 
   // Map fields to the format expected by the content editor
-  const fields: { id: string; type: string; content: unknown; content_field_id: string | null; collection_id?: string | null }[] = entry.sections
+  const fields: {
+    id: string;
+    type: string;
+    content: unknown;
+    content_field_id: string | null;
+    collection_id?: string | null;
+    form_id?: string | null;
+  }[] = entry.sections
     .flatMap((section) => flattenFields(section.fields))
     .map((field) => ({
       id: field.id, // This is the schema field ID
@@ -61,6 +68,7 @@ export default async function CollectionEntryPage({ params }: CollectionEntryPag
       content: field.content ?? null,
       content_field_id: field.content_field_id ?? null, // This is the content field ID for updates
       collection_id: field.collection_id || null,
+      form_id: field.form_id ?? null,
     }));
 
   return <CollectionContentEditor entryId={entryId} collectionId={collectionId} existingContent={entry} originalFields={fields} />;

@@ -44,6 +44,14 @@ type PlatformSetting = {
 type SocialMediaSettingsProps = {
   value: Record<string, unknown> | null
   setValue: (value: Record<string, unknown> | null) => void
+  open?: boolean
+  collectionId?: string | null
+  setCollectionId?: (value: string | null) => void
+  formId?: string | null
+  setFormId?: (value: string | null) => void
+  error?: string | null
+  onCollectionTouched?: () => void
+  onFormTouched?: () => void
 }
 
 export function SocialMediaSettings({ value, setValue }: SocialMediaSettingsProps) {

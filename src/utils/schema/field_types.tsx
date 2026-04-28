@@ -8,12 +8,14 @@ import {
   Image as ImageIcon,
   Link,
   Menu,
+  MessageSquare,
   Share2,
   ToggleLeft,
   Type,
   Video,
 } from "lucide-react"
 import * as cmsComponents from "@/components/cms/content-editor/components"
+import { ContactFormSettings } from "@/components/cms/schema_builder/field_settings/contact_form_settings"
 import { ReferenceSettings } from "@/components/cms/schema_builder/field_settings/reference_settings"
 import { NavigationMenuSettings } from "@/components/cms/schema_builder/field_settings/navigation_menu_settings"
 import { RichTextSettings } from "@/components/cms/schema_builder/field_settings/rich_text_settings"
@@ -32,8 +34,11 @@ export type SchemaFieldType = {
     open?: boolean
     collectionId?: string | null
     setCollectionId?: (value: string | null) => void
+    formId?: string | null
+    setFormId?: (value: string | null) => void
     error?: string | null
     onCollectionTouched?: () => void
+    onFormTouched?: () => void
   }>
 }
 
@@ -95,6 +100,15 @@ export const FIELD_TYPES: SchemaFieldType[] = [
     color: "bg-yellow-100 text-yellow-800",
     cmsComponent: cmsComponents.ReferenceComponent,
     settingsComponent: ReferenceSettings,
+  },
+  {
+    value: "contact_form",
+    label: "Contact form",
+    icon: <MessageSquare className="h-4 w-4" />,
+    description: "Embed a website contact form",
+    color: "bg-amber-100 text-amber-900",
+    cmsComponent: cmsComponents.ContactFormComponent,
+    settingsComponent: ContactFormSettings,
   },
   {
     value: "video",

@@ -82,7 +82,7 @@ export function SchemaBuilder({ initialDocument, saveSchemaAction }: SchemaBuild
         </DndContext>
 
         <FieldSheet
-          key={`${controller.fieldSheetMode}-${controller.fieldSheetOpen}-${controller.fieldSheetValues.databaseType}-${controller.fieldSheetValues.fieldKey}-${controller.fieldSheetValues.label}`}
+          key={`${controller.fieldSheetMode}-${controller.fieldSheetOpen}-${controller.fieldSheetValues.databaseType}-${controller.fieldSheetValues.fieldKey}-${controller.fieldSheetValues.label}-${controller.fieldSheetValues.formId ?? ""}`}
           mode={controller.fieldSheetMode}
           open={controller.fieldSheetOpen}
           initialValues={controller.fieldSheetValues}
