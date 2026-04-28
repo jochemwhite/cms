@@ -175,14 +175,38 @@ export function FormBuilderEditor({ form }: FormBuilderEditorProps) {
     }
     return [];
   });
+  const [formSettings, setFormSettings] = useState<Record<string, unknown> | null>(() => {
+    const raw = (form as any)?.settings;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+    return raw as Record<string, unknown>;
+  });
   const [isPublished, setIsPublished] = useState(form.published);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const saveContent = () => {
     startTransition(async () => {
+      const submitLabelRaw =
+        typeof (formSettings as any)?.submit_label === "string"
+          ? String((formSettings as any).submit_label)
+          : undefined;
+      const submitLabel = submitLabelRaw?.trim() ? submitLabelRaw.trim() : undefined;
+      const normalizedSettings =
+        submitLabel
+          ? { ...(formSettings ?? {}), submit_label: submitLabel }
+          : (formSettings
+              ? (() => {
+                  const { submit_label: _omit, ...rest } = formSettings as Record<
+                    string,
+                    unknown
+                  > & { submit_label?: unknown };
+                  return Object.keys(rest).length > 0 ? rest : null;
+                })()
+              : null);
+
       const result = await updateFormContent(form.id, {
         content,
+        settings: normalizedSettings ?? undefined,
       });
 
       if (!result.success) {
@@ -243,6 +267,8 @@ export function FormBuilderEditor({ form }: FormBuilderEditorProps) {
       <HeadlessFormDesigner
         value={content}
         onChange={setContent}
+        formSettings={formSettings}
+        onFormSettingsChange={setFormSettings}
         submissionsCount={form.submissions}
         initialFieldKeys={initialFieldKeys}
       />

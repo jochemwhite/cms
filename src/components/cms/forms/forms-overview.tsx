@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import {
   archiveForm,
@@ -9,15 +8,18 @@ import {
   createFormForActiveWebsite,
   setFormPublishedState,
 } from "@/actions/cms/form-actions";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useUserSession } from "@/providers/session-provider";
-import { Plus, Settings2, Trash2 } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { FormsDataTable } from "./table/forms-table";
+import { createFormColumns } from "./table/forms-table-columns";
 
 interface FormsOverviewProps {
   initialForms: CmsForm[];
@@ -25,6 +27,7 @@ interface FormsOverviewProps {
 }
 
 export function FormsOverview({ initialForms, initialStats }: FormsOverviewProps) {
+  const router = useRouter();
   const [forms, setForms] = useState<CmsForm[]>(initialForms);
   const [stats, setStats] = useState<CmsFormStats>(initialStats);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -38,7 +41,7 @@ export function FormsOverview({ initialForms, initialStats }: FormsOverviewProps
     [userSession?.global_roles],
   );
 
-  const publishedCount = useMemo(() => forms.filter((form) => form.published).length, [forms]);
+  const publishedCount = useMemo(() => forms.filter((f) => f.published).length, [forms]);
 
   const resetForm = () => {
     setName("");
@@ -47,16 +50,11 @@ export function FormsOverview({ initialForms, initialStats }: FormsOverviewProps
 
   const handleCreate = () => {
     startTransition(async () => {
-      const result = await createFormForActiveWebsite({
-        name,
-        description,
-      });
-
+      const result = await createFormForActiveWebsite({ name, description });
       if (!result.success || !result.data) {
         toast.error(result.error || "Failed to create form");
         return;
       }
-
       setForms((prev) => [result.data!, ...prev]);
       toast.success("Form created");
       setIsCreateOpen(false);
@@ -68,10 +66,9 @@ export function FormsOverview({ initialForms, initialStats }: FormsOverviewProps
     startTransition(async () => {
       const result = await setFormPublishedState(form.id, !form.published);
       if (!result.success || !result.data) {
-        toast.error(result.error || "Failed to update publish state");
+        toast.error(result.error || "Failed to update status");
         return;
       }
-
       setForms((prev) => prev.map((item) => (item.id === form.id ? result.data! : item)));
       toast.success(result.data.published ? "Form published" : "Form moved to draft");
     });
@@ -84,7 +81,6 @@ export function FormsOverview({ initialForms, initialStats }: FormsOverviewProps
         toast.error(result.error || "Failed to archive form");
         return;
       }
-
       setForms((prev) => prev.filter((item) => item.id !== form.id));
       setStats((prev) => ({
         ...prev,
@@ -95,19 +91,38 @@ export function FormsOverview({ initialForms, initialStats }: FormsOverviewProps
     });
   };
 
+  const handleOpenBuilder = (formId: string) => {
+    router.push(`/dashboard/forms/${formId}`);
+  };
+
+  const columns = useMemo(
+    () => createFormColumns(handleTogglePublish, handleArchive, handleOpenBuilder),
+    [],
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Forms</h1>
-          <p className="text-muted-foreground">Manage headless form definitions and publishing state.</p>
+          <p className="text-muted-foreground">
+            Manage your forms and view submissions.
+          </p>
         </div>
-        {isSystemAdmin && (
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Form
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/forms/settings">
+              <Bell className="mr-2 h-4 w-4" />
+              Notifications
+            </Link>
           </Button>
-        )}
+          {isSystemAdmin && (
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Form
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -125,69 +140,25 @@ export function FormsOverview({ initialForms, initialStats }: FormsOverviewProps
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Visits</CardDescription>
-            <CardTitle className="text-2xl">{stats.visits}</CardTitle>
+            <CardDescription>Total Visits</CardDescription>
+            <CardTitle className="text-2xl">{stats.visits.toLocaleString()}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Submissions</CardDescription>
-            <CardTitle className="text-2xl">{stats.submissions}</CardTitle>
+            <CardDescription>Total Submissions</CardDescription>
+            <CardTitle className="text-2xl">{stats.submissions.toLocaleString()}</CardTitle>
           </CardHeader>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Form Definitions</CardTitle>
-          <CardDescription>Open a form in builder mode to edit fields and structure.</CardDescription>
+          <CardTitle>All Forms</CardTitle>
+          <CardDescription>Click on a form to view its submissions.</CardDescription>
         </CardHeader>
         <CardContent>
-          {forms.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No forms yet. Create one to start building.</p>
-          ) : (
-            <div className="space-y-3">
-              {forms.map((form) => (
-                <div key={form.id} className="flex flex-col gap-3 rounded-md border p-3 md:flex-row md:items-center md:justify-between">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{form.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{form.description || "No description"}</p>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      {form.submissions} submissions / {form.visits} visits
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={form.published ? "default" : "secondary"}>
-                      {form.published ? "Published" : "Draft"}
-                    </Badge>
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={`/dashboard/forms/${form.id}`}>
-                        <Settings2 className="mr-2 h-4 w-4" />
-                        Builder
-                      </Link>
-                    </Button>
-                    {isSystemAdmin && (
-                      <>
-                        <Button size="sm" variant="outline" onClick={() => handleTogglePublish(form)} disabled={isPending}>
-                          {form.published ? "Unpublish" : "Publish"}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleArchive(form)}
-                          disabled={isPending}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Archive
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <FormsDataTable columns={columns} data={forms} />
         </CardContent>
       </Card>
 
@@ -195,9 +166,10 @@ export function FormsOverview({ initialForms, initialStats }: FormsOverviewProps
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create Form</DialogTitle>
-            <DialogDescription>Create a new form definition for the active website.</DialogDescription>
+            <DialogDescription>
+              Create a new form for your website.
+            </DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="form-name" className="text-sm font-medium">
@@ -206,26 +178,24 @@ export function FormsOverview({ initialForms, initialStats }: FormsOverviewProps
               <Input
                 id="form-name"
                 value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Lead Capture"
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Contact Form"
                 disabled={isPending}
               />
             </div>
-
             <div className="space-y-2">
               <label htmlFor="form-description" className="text-sm font-medium">
-                Description
+                Description (optional)
               </label>
               <Textarea
                 id="form-description"
                 value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Used for homepage demo request CTA"
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="A short description of what this form is for"
                 rows={3}
                 disabled={isPending}
               />
             </div>
-
             <div className="flex items-center justify-end gap-2 pt-2">
               <Button
                 variant="outline"

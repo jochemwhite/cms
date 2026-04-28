@@ -8,8 +8,11 @@ type NavigationMenuSettingsProps = {
   open?: boolean
   collectionId?: string | null
   setCollectionId?: (value: string | null) => void
+  formId?: string | null
+  setFormId?: (value: string | null) => void
   error?: string | null
   onCollectionTouched?: () => void
+  onFormTouched?: () => void
 }
 
 const MIN_DEPTH = 1

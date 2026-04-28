@@ -14,6 +14,7 @@ type SchemaItemBase = {
   validation?: string | null
   defaultValue?: string | null
   collectionId?: string | null
+  formId?: string | null
   schemaSectionId: string
   parentFieldId?: string | null
 }

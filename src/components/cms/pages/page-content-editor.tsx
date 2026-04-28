@@ -20,7 +20,14 @@ interface PageContentEditorProps {
     };
   };
   existingContent: RPCPageResponse;
-  originalFields: { id: string; type: string; content: any; content_field_id?: string | null; collection_id?: string | null }[];
+  originalFields: {
+    id: string;
+    type: string;
+    content: any;
+    content_field_id?: string | null;
+    collection_id?: string | null;
+    form_id?: string | null;
+  }[];
 }
 
 export function PageContentEditor({ pageId, page, existingContent, originalFields }: PageContentEditorProps) {

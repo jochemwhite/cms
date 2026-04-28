@@ -1,3 +1,4 @@
+export { default as ContactFormComponent } from "./contact_form";
 export { default as BooleanComponent } from "./boolean";
 export { default as ButtonComponent } from "./button";
 export { default as DateComponent } from "./date";

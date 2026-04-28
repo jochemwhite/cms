@@ -294,6 +294,7 @@ export async function syncSchemaDraft(payload: {
         validation: field.validation ?? null,
         settings: (field.settings ?? null) as Record<string, unknown> | null,
         collectionId: field.collection_id ?? null,
+        formId: field.form_id ?? null,
       }))
     ),
   };
@@ -447,6 +448,7 @@ function normalize_schema(schema: SupabaseSchemaWithRelations): Schema {
             parent_field_id: field.parent_field_id ?? null,
             schema_section_id: field.schema_section_id ?? section.id,
             collection_id: field.collection_id ?? null,
+            form_id: field.form_id ?? null,
             created_at: field.created_at ?? undefined,
             updated_at: field.updated_at ?? undefined,
           })),
@@ -495,6 +497,10 @@ function validate_schema_payload(
 
     if (!field.fieldKey.trim()) {
       return { success: false, error: "A field was submitted without a field key." };
+    }
+
+    if (field.type === "contact_form" && (!field.formId || !String(field.formId).trim())) {
+      return { success: false, error: "Each contact form field must have a form selected." };
     }
 
     sectionIdByFieldId.set(field.id, field.schemaSectionId);

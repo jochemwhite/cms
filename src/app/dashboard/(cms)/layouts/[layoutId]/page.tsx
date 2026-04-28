@@ -85,6 +85,7 @@ export default async function LayoutEditPage({ params }: LayoutEditPageProps) {
     content: unknown;
     content_field_id?: string | null;
     collection_id?: string | null;
+    form_id?: string | null;
   }[] = existingContent.sections
     .flatMap((section) => flattenFields(section.fields))
     .map((field) => ({
@@ -93,6 +94,7 @@ export default async function LayoutEditPage({ params }: LayoutEditPageProps) {
       content: field.content,
       content_field_id: field.content_field_id,
       collection_id: field.collection_id || null,
+      form_id: field.form_id ?? null,
     }));
 
   return (

@@ -50,6 +50,7 @@ function build_schema_items(
           validation: field.validation ?? null,
           defaultValue: field.default_value ?? null,
           collectionId: field.collection_id ?? null,
+          formId: field.form_id ?? null,
           schemaSectionId,
           parentFieldId: field.parent_field_id ?? null,
           open: true,
@@ -71,6 +72,7 @@ function build_schema_items(
         validation: field.validation ?? null,
         defaultValue: field.default_value ?? null,
         collectionId: field.collection_id ?? null,
+        formId: field.form_id ?? null,
         schemaSectionId,
         parentFieldId: field.parent_field_id ?? null,
       }
@@ -85,6 +87,8 @@ function map_field_type(type: string): FieldType {
       return "Image"
     case "richtext":
       return "Rich Text"
+    case "contact_form":
+      return "Contact form"
     case "text":
     default:
       return "Text"
@@ -144,6 +148,7 @@ function collect_section_fields(
       validation: item.validation ?? null,
       settings: item.settings ?? null,
       collectionId: item.collectionId ?? null,
+      formId: item.formId ?? null,
     })
 
     if (item.kind === "nested") {

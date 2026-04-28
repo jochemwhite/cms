@@ -16,6 +16,7 @@ interface LayoutContentEditorProps {
     content: unknown;
     content_field_id?: string | null;
     collection_id?: string | null;
+    form_id?: string | null;
   }[];
   layoutType: string;
   layoutName: string;

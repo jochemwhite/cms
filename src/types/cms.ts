@@ -205,6 +205,7 @@ export interface SchemaField {
   parent_field_id?: string | null;
   schema_section_id: string;
   collection_id?: string | null;
+  form_id?: string | null;
   allowedNodes?: string[];
   created_at?: string;
   updated_at?: string;
@@ -267,6 +268,7 @@ export type SupabaseSchemaWithRelations = {
       parent_field_id: string | null;
       schema_section_id: string | null;
       collection_id: string | null;
+      form_id: string | null;
       created_at: string | null;
       updated_at: string | null;
     }[];
@@ -332,6 +334,7 @@ export type RPCPageField = {
   default_value: string;
   parent_field_id: string | null;
   collection_id: string | null;
+  form_id?: string | null;
   settings?: Record<string, any> | null;
   allowedNodes?: string[];
   content?: { value?: any } | null; // JSONB content column

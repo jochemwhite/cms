@@ -90,6 +90,7 @@ type SchemaFieldRow = {
   default_value: string | null;
   parent_field_id: string | null;
   collection_id: string | null;
+  form_id: string | null;
   settings: Record<string, any> | null;
   schema_section_id: string;
 };
@@ -124,6 +125,7 @@ function nestCollectionFields(
       default_value: field.default_value || "",
       parent_field_id: field.parent_field_id,
       collection_id: field.collection_id,
+      form_id: field.form_id ?? null,
       settings: field.settings,
       content: contentRecord ? ({ value: contentRecord.content } as { value?: any }) : null,
       content_field_id: contentRecord?.id || null,
@@ -170,7 +172,9 @@ async function getSchemaStructure(supabase: Awaited<ReturnType<typeof createClie
 
   const { data: schemaFields, error: fieldsError } = await supabase
     .from("cms_schema_fields")
-    .select("id, name, type, order, required, validation, default_value, parent_field_id, collection_id, settings, schema_section_id")
+    .select(
+      "id, name, type, order, required, validation, default_value, parent_field_id, collection_id, form_id, settings, schema_section_id",
+    )
     .in("schema_section_id", sectionIds)
     .order("order", { ascending: true });
 
@@ -1168,6 +1172,12 @@ const formatContentForFieldType = (fieldType: string, value: any): any => {
         collection_id: value.collection_id || value,
         entry_id: value.entry_id || null,
       };
+
+    case "contact_form":
+      if (value && typeof value === "object") {
+        return value;
+      }
+      return null;
 
     default:
       return value;

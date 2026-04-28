@@ -24,5 +24,6 @@ export type SchemaSavePayload = {
     validation: string | null
     settings: Record<string, unknown> | null
     collectionId: string | null
+    formId: string | null
   }>
 }

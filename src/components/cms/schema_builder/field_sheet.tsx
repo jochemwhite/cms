@@ -19,6 +19,7 @@ export type FieldSheetValues = {
   validation: string
   settings: Record<string, unknown> | null
   collectionId: string | null
+  formId: string | null
 }
 
 type FieldSheetProps = {
@@ -38,10 +39,12 @@ export function FieldSheet({ mode, open, initialValues, onClose, onSubmit }: Fie
     label: boolean
     fieldKey: boolean
     collectionId: boolean
+    formId: boolean
   }>({
     label: false,
     fieldKey: false,
     collectionId: false,
+    formId: false,
   })
 
   const filteredFieldTypes = useMemo(() => {
@@ -63,12 +66,16 @@ export function FieldSheet({ mode, open, initialValues, onClose, onSubmit }: Fie
   const SettingsComponent = selectedFieldType?.settingsComponent
   const collectionError =
     selectedType === "reference" && !formValues.collectionId ? "Please select a collection." : null
+  const formError =
+    selectedType === "contact_form" && !formValues.formId ? "Please select a contact form." : null
   const labelError = validate_label(formValues.label)
   const fieldKeyError = validate_field_key(formValues.fieldKey)
-  const canSubmit = !labelError && !fieldKeyError && !collectionError && Boolean(selectedType)
+  const canSubmit =
+    !labelError && !fieldKeyError && !collectionError && !formError && Boolean(selectedType)
   const showLabelError = Boolean(labelError) && (hasTriedSubmit || touched.label)
   const showFieldKeyError = Boolean(fieldKeyError) && (hasTriedSubmit || touched.fieldKey)
   const showCollectionError = Boolean(collectionError) && (hasTriedSubmit || touched.collectionId)
+  const showFormError = Boolean(formError) && (hasTriedSubmit || touched.formId)
 
   function handle_type_select(type: string) {
     setSelectedType(type)
@@ -77,10 +84,13 @@ export function FieldSheet({ mode, open, initialValues, onClose, onSubmit }: Fie
       label: false,
       fieldKey: false,
       collectionId: false,
+      formId: false,
     })
     setFormValues((current) => ({
       ...current,
       databaseType: type,
+      collectionId: type === "reference" ? current.collectionId : null,
+      formId: type === "contact_form" ? current.formId : null,
     }))
   }
 
@@ -231,11 +241,24 @@ export function FieldSheet({ mode, open, initialValues, onClose, onSubmit }: Fie
                       collectionId,
                     }))
                   }
-                  error={showCollectionError ? collectionError : null}
+                  formId={formValues.formId}
+                  setFormId={(nextFormId) =>
+                    setFormValues((current) => ({
+                      ...current,
+                      formId: nextFormId,
+                    }))
+                  }
+                  error={showCollectionError ? collectionError : showFormError ? formError : null}
                   onCollectionTouched={() =>
                     setTouched((current) => ({
                       ...current,
                       collectionId: true,
+                    }))
+                  }
+                  onFormTouched={() =>
+                    setTouched((current) => ({
+                      ...current,
+                      formId: true,
                     }))
                   }
                 />
@@ -267,6 +290,7 @@ export function FieldSheet({ mode, open, initialValues, onClose, onSubmit }: Fie
                       label: false,
                       fieldKey: false,
                       collectionId: false,
+                      formId: false,
                     })
                   }}
                 >

@@ -10,6 +10,7 @@ interface FieldWithValue {
   content: any;
   content_field_id?: string | null; // actual content field ID for updates
   collection_id?: string | null; // collection id
+  form_id?: string | null;
 }
 
 const normalizeFieldContent = (content: any) => {
@@ -56,6 +57,7 @@ interface ContentEditorState {
   getFieldValue: (fieldId: string) => any;
   getFieldComponent: (field: RPCPageField) => React.ComponentType<FieldComponentProps> | null;
   getFieldCollectionId: (fieldId: string) => string | null;
+  getFieldFormId: (fieldId: string) => string | null;
   resetField: (fieldId: string) => void;
   resetAllFields: () => void;
   saveContent: () => Promise<void>;
@@ -167,6 +169,17 @@ export const useContentEditorStore = create<ContentEditorState>()(
         }
 
         return originalField.collection_id;
+      },
+
+      getFieldFormId: (fieldId: string): string | null => {
+        const state = get();
+        const originalField = state.originalFields.find((f) => f.id === fieldId);
+
+        if (!originalField || !originalField.form_id || originalField.form_id === "" || originalField.type !== "contact_form") {
+          return null;
+        }
+
+        return originalField.form_id;
       },
 
       // Reset a single field to its original value

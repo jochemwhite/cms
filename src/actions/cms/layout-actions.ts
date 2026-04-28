@@ -60,6 +60,7 @@ type LayoutTemplateWithContent = {
         default_value: string;
         parent_field_id: string | null;
         collection_id: string | null;
+        form_id: string | null;
         settings: Record<string, unknown> | null;
         content: { value?: unknown } | null;
         content_field_id: string | null;
@@ -79,6 +80,7 @@ type SchemaFieldRow = {
   default_value: string | null;
   parent_field_id: string | null;
   collection_id: string | null;
+  form_id: string | null;
   settings: Record<string, unknown> | null;
   schema_section_id: string;
 };
@@ -114,6 +116,7 @@ function nestSchemaFields(
       default_value: field.default_value || "",
       parent_field_id: field.parent_field_id,
       collection_id: field.collection_id,
+      form_id: field.form_id ?? null,
       settings: field.settings,
       content: contentRecord
         ? ({ value: contentRecord.content } as { value?: unknown })
@@ -436,7 +439,7 @@ export async function getTemplateWithContent(
     const { data: schemaFields, error: fieldsError } = await supabase
       .from("cms_schema_fields")
       .select(
-        "id, name, type, order, required, validation, default_value, parent_field_id, collection_id, settings, schema_section_id",
+        "id, name, type, order, required, validation, default_value, parent_field_id, collection_id, form_id, settings, schema_section_id",
       )
       .in(
         "schema_section_id",

@@ -105,6 +105,12 @@ const formatContentForFieldType = (fieldType: string, value: any): any => {
       }
       return null;
 
+    case "contact_form":
+      if (value && typeof value === "object") {
+        return value;
+      }
+      return null;
+
     default:
       return value;
   }
@@ -167,7 +173,7 @@ export async function savePageContent(
 
     const { data: schemaFields, error: schemaFieldsError } = await supabase
       .from("cms_schema_fields")
-      .select("id, schema_section_id, name, type, order, parent_field_id, collection_id")
+      .select("id, schema_section_id, name, type, order, parent_field_id, collection_id, form_id")
       .in("id", schemaFieldIds);
 
     if (schemaFieldsError || !schemaFields) {

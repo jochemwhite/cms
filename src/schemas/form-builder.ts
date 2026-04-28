@@ -181,6 +181,12 @@ export const UpdateCmsFormContentSchema = z.object({
       }
     });
   }),
+  settings: z
+    .object({
+      submit_label: z.string().trim().min(1).max(80).optional(),
+    })
+    .passthrough()
+    .optional(),
 });
 
 export type CreateCmsFormSchemaType = z.infer<typeof CreateCmsFormSchema>;
